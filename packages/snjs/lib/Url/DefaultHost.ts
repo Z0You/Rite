@@ -1,4 +1,8 @@
+/**
+ * Rite's default sync destination is the user's own MEGA drive (see RiteVirtualServer).
+ * Rite never defaults to a third party's sync service.
+ */
 export enum DefaultHost {
-  Api = 'https://api.standardnotes.com',
-  WebSocket = 'wss://sockets.standardnotes.com',
+  Api = 'mega://rite',
+  WebSocket = '',
 }

@@ -317,7 +317,8 @@ describe('FeaturesService', () => {
       ).toBe(FeatureStatus.Entitled)
     })
 
-    it('feature status with no paid role', async () => {
+    // Rite has no subscriptions; upstream paywall behaviour is intentionally removed.
+    it.skip('feature status with no paid role', async () => {
       sessionManager.isSignedIntoFirstPartyServer = jest.fn().mockReturnValue(true)
 
       await featureService.updateOnlineRolesWithNewValues([RoleName.NAMES.CoreUser])
@@ -340,7 +341,8 @@ describe('FeaturesService', () => {
       ).toBe(FeatureStatus.NoUserSubscription)
     })
 
-    it('role-based features while not signed into first party server', async () => {
+    // Rite has no subscriptions; upstream paywall behaviour is intentionally removed.
+    it.skip('role-based features while not signed into first party server', async () => {
       sessionManager.isSignedIntoFirstPartyServer = jest.fn().mockReturnValue(false)
 
       await featureService.updateOnlineRolesWithNewValues([RoleName.NAMES.ProUser])
@@ -373,7 +375,8 @@ describe('FeaturesService', () => {
       )
     })
 
-    it('feature status should be not entitled if no account or offline repo', async () => {
+    // Rite has no subscriptions; upstream paywall behaviour is intentionally removed.
+    it.skip('feature status should be not entitled if no account or offline repo', async () => {
       await featureService.updateOnlineRolesWithNewValues([RoleName.NAMES.CoreUser])
 
       sessionManager.isSignedIntoFirstPartyServer = jest.fn().mockReturnValue(false)
@@ -406,7 +409,8 @@ describe('FeaturesService', () => {
       ).toBe(FeatureStatus.Entitled)
     })
 
-    it('feature status for deprecated feature and no subscription', async () => {
+    // Rite has no subscriptions; upstream paywall behaviour is intentionally removed.
+    it.skip('feature status for deprecated feature and no subscription', async () => {
       subscriptions.hasOnlineSubscription = jest.fn().mockReturnValue(false)
       sessionManager.isSignedIntoFirstPartyServer = jest.fn().mockReturnValue(true)
 

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Rite Spreadsheet</title>
+    <link rel="stylesheet" href="../app.rite.shared/rite-editor-kit.css" />
+    <link rel="stylesheet" href="lib/xspreadsheet.css" />
+    <link rel="stylesheet" href="spreadsheet.css" />
+  </head>
+  <body>
+    <div class="topbar">
+      <span id="status" class="status"></span>
+      <span class="spacer"></span>
+      <label class="rite-btn small rite-hide-when-locked" for="csv-file">Import CSV</label>
+      <input id="csv-file" type="file" accept=".csv,text/csv,text/plain" hidden />
+      <button id="csv-export" class="rite-btn small" type="button">Export CSV</button>
+    </div>
+    <div id="notice" class="notice" hidden></div>
+    <div id="grid"></div>
+
+    <script src="../app.rite.shared/component-relay.js"></script>
+    <script src="../app.rite.shared/rite-editor-kit.js"></script>
+    <script src="lib/xspreadsheet.js"></script>
+    <script src="csv.js"></script>
+    <script src="spreadsheet.js"></script>
+  </body>
+</html>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Rite Authenticator</title>
+    <link rel="stylesheet" href="../app.rite.shared/rite-editor-kit.css" />
+    <link rel="stylesheet" href="authenticator.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <input id="search" class="rite-input" type="search" placeholder="Search accounts" autocomplete="off" />
+      <button id="add" class="rite-btn rite-btn-primary rite-hide-when-locked" type="button">+ Add</button>
+    </header>
+
+    <div id="notice" class="notice" hidden></div>
+    <main id="list" class="list" aria-live="polite"></main>
+
+    <div id="empty" class="empty" hidden>
+      <div class="empty-icon" aria-hidden="true">🔐</div>
+      <h2>No accounts yet</h2>
+      <p>Add the two-factor (2FA) accounts you use. Their setup keys are encrypted with this note.</p>
+      <button id="add-empty" class="rite-btn rite-btn-primary rite-hide-when-locked" type="button">Add account</button>
+    </div>
+
+    <dialog id="editor" class="sheet">
+      <form id="form" method="dialog">
+        <h2 id="form-title">Add account</h2>
+
+        <div id="scan-row" class="scan-row">
+          <button id="scan-camera" class="rite-btn" type="button">📷 Scan QR code</button>
+          <label class="rite-btn" for="scan-file">🖼️ QR from image</label>
+          <input id="scan-file" type="file" accept="image/*" capture="environment" hidden />
+        </div>
+        <div id="camera" class="camera" hidden>
+          <video id="video" playsinline muted></video>
+          <button id="camera-stop" class="rite-btn" type="button">Stop camera</button>
+        </div>
+
+        <label>Service<input id="f-service" class="rite-input" required placeholder="e.g. GitHub" /></label>
+        <label>Account<input id="f-account" class="rite-input" placeholder="e.g. you@example.com" /></label>
+        <label
+          >Setup key or otpauth:// link
+          <input id="f-secret" class="rite-input mono" required autocomplete="off" spellcheck="false" placeholder="JBSW Y3DP EHPK 3PXP" />
+        </label>
+
+        <details>
+          <summary>Advanced</summary>
+          <div class="grid3">
+            <label
+              >Algorithm
+              <select id="f-algorithm" class="rite-input">
+                <option>SHA1</option>
+                <option>SHA256</option>
+                <option>SHA512</option>
+              </select>
+            </label>
+            <label
+              >Digits
+              <select id="f-digits" class="rite-input">
+                <option>6</option>
+                <option>8</option>
+              </select>
+            </label>
+            <label>Period (s)<input id="f-period" class="rite-input" type="number" min="5" max="300" value="30" /></label>
+          </div>
+        </details>
+
+        <label>Notes<textarea id="f-notes" class="rite-input" rows="2" placeholder="Recovery codes, hints…"></textarea></label>
+
+        <div id="form-error" class="form-error" hidden></div>
+
+        <div class="actions">
+          <button id="delete" class="rite-btn rite-btn-danger" type="button" hidden>Delete</button>
+          <span class="spacer"></span>
+          <button id="cancel" class="rite-btn" type="button">Cancel</button>
+          <button id="save" class="rite-btn rite-btn-primary" type="submit">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="../app.rite.shared/component-relay.js"></script>
+    <script src="../app.rite.shared/rite-editor-kit.js"></script>
+    <script src="lib/jsQR.js"></script>
+    <script src="totp.js"></script>
+    <script src="authenticator.js"></script>
+  </body>
+</html>

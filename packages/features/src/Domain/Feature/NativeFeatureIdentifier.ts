@@ -36,6 +36,9 @@ export class NativeFeatureIdentifier extends ValueObject<NativeFeatureIdentifier
     SheetsEditor: 'org.standardnotes.standard-sheets',
     TokenVaultEditor: 'org.standardnotes.token-vault',
 
+    RiteAuthenticatorEditor: 'app.rite.authenticator',
+    RiteSpreadsheetEditor: 'app.rite.spreadsheet',
+
     Clipper: 'org.standardnotes.clipper',
 
     Vaults: 'org.standardnotes.vaults',

@@ -1,0 +1,238 @@
+/* Rite Authenticator. AGPL-3.0. */
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--rite-bg);
+  border-bottom: 1px solid var(--rite-border);
+}
+
+.notice {
+  margin: 10px 12px 0;
+  padding: 10px 12px;
+  border-radius: var(--rite-radius);
+  background: var(--rite-contrast);
+  color: var(--rite-danger);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+  padding: 12px;
+  overflow: auto;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--rite-border);
+  border-radius: 12px;
+  background: var(--rite-bg);
+}
+
+.avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 17px;
+  color: #fff;
+}
+
+.meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.service {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account {
+  color: var(--rite-muted);
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.code {
+  font-family: var(--rite-mono);
+  font-size: 24px;
+  letter-spacing: 1px;
+  font-weight: 600;
+  background: none;
+  border: 0;
+  padding: 2px 0;
+  cursor: pointer;
+  color: var(--rite-fg);
+}
+
+.code.expiring {
+  color: var(--rite-danger);
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.ring {
+  width: 26px;
+  height: 26px;
+}
+
+.ring circle {
+  fill: none;
+  stroke-width: 3;
+}
+
+.ring .track {
+  stroke: var(--rite-border);
+}
+
+.ring .progress {
+  stroke: var(--rite-accent);
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 0.9s linear;
+}
+
+.icon-btn {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--rite-muted);
+  padding: 2px 4px;
+  font-size: 13px;
+}
+
+.empty {
+  margin: auto;
+  max-width: 340px;
+  text-align: center;
+  padding: 24px;
+}
+
+.empty-icon {
+  font-size: 40px;
+}
+
+.empty p {
+  color: var(--rite-muted);
+}
+
+.sheet {
+  width: min(460px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  border: 1px solid var(--rite-border);
+  border-radius: 14px;
+  padding: 18px;
+  background: var(--rite-bg);
+  color: var(--rite-fg);
+}
+
+.sheet::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.sheet h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.sheet form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sheet label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--rite-muted);
+}
+
+.sheet label .rite-input {
+  color: var(--rite-fg);
+  font-size: 14px;
+}
+
+.mono {
+  font-family: var(--rite-mono);
+}
+
+.scan-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.camera {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.camera video {
+  width: 100%;
+  border-radius: var(--rite-radius);
+  background: #000;
+  max-height: 260px;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+details summary {
+  cursor: pointer;
+  color: var(--rite-muted);
+  font-size: 13px;
+}
+
+.form-error {
+  color: var(--rite-danger);
+  font-size: 13px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+@media (max-width: 520px) {
+  .list {
+    grid-template-columns: 1fr;
+  }
+}

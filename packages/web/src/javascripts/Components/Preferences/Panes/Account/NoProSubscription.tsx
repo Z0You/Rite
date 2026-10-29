@@ -9,9 +9,17 @@ type Props = {
   text: ReactNode
 }
 
+const RiteHasNoPaidPlans = true
+
 const NoProSubscription: FunctionComponent<Props> = ({ application, text }) => {
   const [isLoadingPurchaseFlow, setIsLoadingPurchaseFlow] = useState(false)
+
   const [purchaseFlowError, setPurchaseFlowError] = useState<string | undefined>(undefined)
+
+  // Rite has no paid plans, so there is never anything to upgrade to.
+  if (RiteHasNoPaidPlans) {
+    return null
+  }
 
   const onPurchaseClick = async () => {
     const errorMessage = c('B6.Preferences.Account.Error')

@@ -15,6 +15,7 @@ import DecoratedPasswordInput from '@/Components/Input/DecoratedPasswordInput'
 import Icon from '@/Components/Icon/Icon'
 import IconButton from '@/Components/Button/IconButton'
 import AdvancedOptions from './AdvancedOptions'
+import SyncStoragePanel from '@/Rite/Components/SyncStoragePanel'
 import HorizontalSeparator from '../Shared/HorizontalSeparator'
 import { c } from 'ttag'
 
@@ -109,6 +110,7 @@ const CreateAccount: FunctionComponent<Props> = ({ setMenuPane, email, setEmail,
         />
         <div className="text-base font-bold">{c('B1.Account.SignIn.Title').t`Create account`}</div>
       </div>
+      <SyncStoragePanel hint="Your Rite password encrypts your notes. Use a different password from your MEGA account, and keep it safe: it cannot be reset." />
       <form onSubmit={handleRegisterFormSubmit} className="mb-1 px-3">
         <DecoratedInput
           className={{ container: 'mb-2' }}

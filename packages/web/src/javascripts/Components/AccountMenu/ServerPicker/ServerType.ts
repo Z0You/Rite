@@ -1,1 +1,1 @@
-export type ServerType = 'standard' | 'custom' | 'home server'
+export type ServerType = 'mega' | 'custom' | 'home server'

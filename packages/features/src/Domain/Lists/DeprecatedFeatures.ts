@@ -190,5 +190,8 @@ export function GetDeprecatedFeatures(): AnyFeatureDescription[] {
     availableInRoles: [RoleName.NAMES.PlusUser, RoleName.NAMES.ProUser],
   })
 
-  return [code, plus, markdown, task, bold, markdownBasic, markdownMinimist, markdownMath, markdownAlt, filesafe]
+  // Rite: the task and minimal-markdown editors are not shipped (their packages carry no open-source license).
+  void task
+  void markdownMinimist
+  return [code, plus, markdown, bold, markdownBasic, markdownMath, markdownAlt, filesafe]
 }

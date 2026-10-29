@@ -1,0 +1,47 @@
+/* Rite Spreadsheet. AGPL-3.0. */
+body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--rite-border);
+}
+
+.rite-btn.small {
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+
+.status {
+  color: var(--rite-muted);
+  font-size: 12px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.notice {
+  margin: 8px;
+  padding: 10px 12px;
+  border-radius: var(--rite-radius);
+  background: var(--rite-contrast);
+  color: var(--rite-danger);
+}
+
+#grid {
+  flex: 1;
+  min-height: 0;
+}
+
+/* x-spreadsheet is light by default; keep its grid readable inside dark themes. */
+.x-spreadsheet {
+  color-scheme: light;
+}

@@ -1,0 +1,107 @@
+/* Rite editor kit — shared look for Rite's built-in editors. AGPL-3.0. */
+:root {
+  --rite-bg: var(--sn-stylekit-background-color, #ffffff);
+  --rite-fg: var(--sn-stylekit-foreground-color, #1b1b1f);
+  --rite-muted: var(--sn-stylekit-neutral-color, #6b6f7b);
+  --rite-border: var(--sn-stylekit-border-color, #e3e3e8);
+  --rite-contrast: var(--sn-stylekit-contrast-background-color, #f4f5f7);
+  --rite-accent: var(--sn-stylekit-info-color, #086dd6);
+  --rite-accent-fg: var(--sn-stylekit-info-contrast-color, #ffffff);
+  --rite-danger: var(--sn-stylekit-danger-color, #cc2128);
+  --rite-radius: 8px;
+  --rite-font: var(--sn-stylekit-sans-serif-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  --rite-mono: var(--sn-stylekit-monospace-font, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--rite-bg);
+  color: var(--rite-fg);
+  font-family: var(--rite-font);
+  font-size: 14px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+.rite-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--rite-radius);
+  border: 1px solid var(--rite-border);
+  background: var(--rite-bg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rite-btn:hover {
+  background: var(--rite-contrast);
+}
+
+.rite-btn:focus-visible,
+.rite-input:focus-visible {
+  outline: 2px solid var(--rite-accent);
+  outline-offset: 1px;
+}
+
+.rite-btn-primary {
+  background: var(--rite-accent);
+  border-color: var(--rite-accent);
+  color: var(--rite-accent-fg);
+  font-weight: 600;
+}
+
+.rite-btn-primary:hover {
+  background: var(--rite-accent);
+  filter: brightness(1.08);
+}
+
+.rite-btn-danger {
+  color: var(--rite-danger);
+}
+
+.rite-input {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: var(--rite-radius);
+  border: 1px solid var(--rite-border);
+  background: var(--rite-bg);
+}
+
+.rite-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  background: var(--rite-fg);
+  color: var(--rite-bg);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  z-index: 100;
+  transition: opacity 0.4s;
+}
+
+.rite-toast-hide {
+  opacity: 0;
+}
+
+.rite-locked .rite-hide-when-locked {
+  display: none !important;
+}

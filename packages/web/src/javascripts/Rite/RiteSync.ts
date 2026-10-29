@@ -1,6 +1,7 @@
 import { registerRiteVaultStorage, RiteMegaHost, setRiteDeviceInfo } from '@standardnotes/snjs'
 import { MegaAccount } from './Mega/MegaAccount'
 import { MegaVaultStorage } from './Mega/MegaVaultStorage'
+import { MegaModuleLoader } from './Mega/MegaTypes'
 
 export { RiteMegaHost }
 
@@ -8,7 +9,9 @@ let megaAccount: MegaAccount | undefined
 
 export function getMegaAccount(): MegaAccount {
   if (!megaAccount) {
-    megaAccount = new MegaAccount()
+    // Automated end-to-end tests provide a stand-in MEGA drive before the app starts.
+    const testLoader = (window as { __riteMegaModuleLoader?: MegaModuleLoader }).__riteMegaModuleLoader
+    megaAccount = testLoader ? new MegaAccount(window.localStorage, testLoader) : new MegaAccount()
   }
   return megaAccount
 }

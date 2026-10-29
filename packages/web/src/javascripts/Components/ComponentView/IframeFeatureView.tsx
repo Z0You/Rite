@@ -289,6 +289,7 @@ const IframeFeatureView: FunctionComponent<Props> = ({
           frameBorder={0}
           src={componentViewer.url || ''}
           sandbox={sandboxAttributes.join(' ')}
+          {...(uiFeature.isNativeFeature && { allow: 'camera; clipboard-write' })}
           {...(usedInModal && { 'data-used-in-modal': true })}
         >
           {c('B2.NavSharedUI.Info').t`Loading`}

@@ -3,9 +3,14 @@ import { Result, SyncUseCaseInterface } from '@standardnotes/domain-core'
 import { GetHost } from './GetHost'
 
 export class IsApplicationUsingThirdPartyHost implements SyncUseCaseInterface<boolean> {
-  private readonly APPLICATION_DEFAULT_HOSTS = ['api.standardnotes.com', 'sync.standardnotes.org', 'localhost:3123']
+  /**
+   * Rite has no first-party hosted service: features that depend on a vendor's hosted
+   * subscription (email backups, subscription management) are never offered. The desktop
+   * home server is the only host treated as first party.
+   */
+  private readonly APPLICATION_DEFAULT_HOSTS = ['localhost:3123']
 
-  private readonly FILES_DEFAULT_HOSTS = ['files.standardnotes.com']
+  private readonly FILES_DEFAULT_HOSTS: string[] = []
 
   constructor(private getHostUseCase: GetHost) {}
 

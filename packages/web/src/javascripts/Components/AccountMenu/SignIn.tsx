@@ -9,6 +9,7 @@ import DecoratedPasswordInput from '@/Components/Input/DecoratedPasswordInput'
 import Icon from '@/Components/Icon/Icon'
 import IconButton from '@/Components/Button/IconButton'
 import AdvancedOptions from './AdvancedOptions'
+import SyncStoragePanel from '@/Rite/Components/SyncStoragePanel'
 import HorizontalSeparator from '../Shared/HorizontalSeparator'
 import { getErrorFromErrorResponse, isErrorResponse, getCaptchaHeader, Result } from '@standardnotes/snjs'
 import { useApplication } from '../ApplicationProvider'
@@ -248,6 +249,7 @@ const SignInPane: FunctionComponent<Props> = ({ setMenuPane }) => {
 
   const signInForm = (
     <>
+      <SyncStoragePanel />
       <div className="mb-1 px-3">
         <DecoratedInput
           className={{ container: `mb-2 ${error ? 'border-danger' : null}` }}

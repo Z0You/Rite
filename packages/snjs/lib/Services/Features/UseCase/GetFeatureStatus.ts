@@ -5,6 +5,8 @@ import { Subscription } from '@standardnotes/responses'
 import { FeatureStatus, ItemManagerInterface } from '@standardnotes/services'
 import { convertTimestampToMilliseconds } from '@standardnotes/utils'
 
+const RiteAllNativeFeaturesEntitled = true
+
 export class GetFeatureStatusUseCase {
   constructor(private items: ItemManagerInterface) {}
 
@@ -22,6 +24,11 @@ export class GetFeatureStatusUseCase {
     const nativeFeature = this.findNativeFeature(dto.featureId)
     if (!nativeFeature) {
       return this.getThirdPartyFeatureStatus(dto.featureId)
+    }
+
+    // Rite has no subscriptions: every built-in feature is available to everyone.
+    if (RiteAllNativeFeaturesEntitled) {
+      return FeatureStatus.Entitled
     }
 
     if (nativeFeature.deprecated) {

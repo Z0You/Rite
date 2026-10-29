@@ -268,7 +268,8 @@ export class WebApplication extends SNApplication implements WebApplicationInter
   }
 
   canShowPurchaseFlow(): boolean {
-    return !this.isAndroid()
+    // Rite has nothing to purchase.
+    return false
   }
 
   get isMobileDevice(): boolean {
@@ -523,8 +524,8 @@ export class WebApplication extends SNApplication implements WebApplicationInter
     return this.featuresController.entitledToFiles
   }
 
-  showPremiumModal(featureName?: FeatureName): void {
-    void this.featuresController.showPremiumAlert(featureName)
+  showPremiumModal(_featureName?: FeatureName): void {
+    // Rite has no premium tier; every built-in feature is already available.
   }
 
   hasValidFirstPartySubscription(): boolean {
@@ -532,7 +533,7 @@ export class WebApplication extends SNApplication implements WebApplicationInter
   }
 
   async openPurchaseFlow() {
-    await this.purchaseFlowController.openPurchaseFlow()
+    // Rite has nothing to purchase.
   }
 
   addNativeMobileEventListener = (listener: NativeMobileEventListener) => {

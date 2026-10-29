@@ -37,6 +37,34 @@ describe('GetFeatureStatusUseCase', () => {
     })
   })
 
+  describe('Rite: no paywall', () => {
+    it('entitles every native feature without any subscription, role or account', () => {
+      findNativeFeature.mockImplementation((id: string) => ({ identifier: id, availableInRoles: ['PRO_USER'] }))
+
+      expect(
+        usecase.execute({
+          featureId: NativeFeatureIdentifier.create(NativeFeatureIdentifier.TYPES.SuperEditor).getValue(),
+          hasPaidAnyPartyOnlineOrOfflineSubscription: false,
+          firstPartyOnlineSubscription: undefined,
+          firstPartyRoles: undefined,
+        }),
+      ).toEqual(FeatureStatus.Entitled)
+    })
+
+    it('still reports third-party components that are not installed', () => {
+      items.getDisplayableComponents.mockReturnValue([])
+
+      expect(
+        usecase.execute({
+          featureId: Uuid.create('00000000-0000-0000-0000-000000000000').getValue(),
+          hasPaidAnyPartyOnlineOrOfflineSubscription: false,
+          firstPartyOnlineSubscription: undefined,
+          firstPartyRoles: undefined,
+        }),
+      ).toEqual(FeatureStatus.NoUserSubscription)
+    })
+  })
+
   describe('deprecated features', () => {
     it('should return entitled for deprecated paid features if any subscription is active', () => {
       findNativeFeature.mockReturnValue({ deprecated: true })
@@ -51,7 +79,8 @@ describe('GetFeatureStatusUseCase', () => {
       ).toEqual(FeatureStatus.Entitled)
     })
 
-    it('should return NoUserSubscription for deprecated paid features if no subscription is active', () => {
+    // Rite has no subscriptions; upstream paywall behaviour is intentionally removed.
+    it.skip('should return NoUserSubscription for deprecated paid features if no subscription is active', () => {
       findNativeFeature.mockReturnValue({ deprecated: true })
 
       expect(
@@ -80,7 +109,8 @@ describe('GetFeatureStatusUseCase', () => {
       ).toEqual(FeatureStatus.Entitled)
     })
 
-    it('should return NoUserSubscription if the context item does not belong to a shared vault and user does not have subscription', () => {
+    // Rite has no subscriptions; upstream paywall behaviour is intentionally removed.
+    it.skip('should return NoUserSubscription if the context item does not belong to a shared vault and user does not have subscription', () => {
       findNativeFeature.mockReturnValue({ deprecated: false })
 
       expect(
@@ -94,7 +124,8 @@ describe('GetFeatureStatusUseCase', () => {
       ).toEqual(FeatureStatus.NoUserSubscription)
     })
 
-    it('should return NoUserSubscription for native features without subscription and roles', () => {
+    // Rite has no subscriptions; upstream paywall behaviour is intentionally removed.
+    it.skip('should return NoUserSubscription for native features without subscription and roles', () => {
       findNativeFeature.mockReturnValue({ deprecated: false })
 
       expect(
@@ -107,7 +138,8 @@ describe('GetFeatureStatusUseCase', () => {
       ).toEqual(FeatureStatus.NoUserSubscription)
     })
 
-    it('should return NotInCurrentPlan for native features with roles not in available roles', () => {
+    // Rite has no subscriptions; upstream paywall behaviour is intentionally removed.
+    it.skip('should return NotInCurrentPlan for native features with roles not in available roles', () => {
       findNativeFeature.mockReturnValue({
         deprecated: false,
         availableInRoles: ['notInRole'],
@@ -141,7 +173,8 @@ describe('GetFeatureStatusUseCase', () => {
       ).toEqual(FeatureStatus.Entitled)
     })
 
-    it('should return InCurrentPlanButExpired for native features with roles in available roles and expired subscription', () => {
+    // Rite has no subscriptions; upstream paywall behaviour is intentionally removed.
+    it.skip('should return InCurrentPlanButExpired for native features with roles in available roles and expired subscription', () => {
       findNativeFeature.mockReturnValue({
         deprecated: false,
         availableInRoles: ['inRole'],

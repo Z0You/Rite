@@ -5,6 +5,8 @@ import Button from '../Button/Button'
 import Icon from '../Icon/Icon'
 import { PremiumFeatureIconClass, PremiumFeatureIconName } from '../Icon/PremiumFeatureIcon'
 
+const RiteHasNoPaidPlans = true
+
 const NoSubscriptionBanner = ({
   application,
   title,
@@ -16,6 +18,11 @@ const NoSubscriptionBanner = ({
   message: string
   className?: string
 }) => {
+  // Rite has no paid plans, so there is never anything to upgrade to.
+  if (RiteHasNoPaidPlans) {
+    return null
+  }
+
   const onClick = () => {
     if (application.isNativeIOS()) {
       application.showPremiumModal()

@@ -33,6 +33,8 @@ export enum PermissionName {
   ThemeDynamic = 'theme:dynamic',
   TitaniumTheme = 'theme:titanium',
   TokenVaultEditor = 'editor:token-vault',
+  RiteAuthenticatorEditor = 'editor:rite-authenticator',
+  RiteSpreadsheetEditor = 'editor:rite-spreadsheet',
   TwoFactorAuth = 'server:two-factor-auth',
   UniversalSecondFactor = 'server:universal-second-factor',
   SubscriptionSharing = 'server:subscription-sharing',

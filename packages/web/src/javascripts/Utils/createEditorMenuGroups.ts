@@ -3,6 +3,7 @@ import {
   FindNativeFeature,
   NoteType,
   GetIframeAndNativeEditors,
+  GetDeprecatedEditors,
   ComponentArea,
   GetSuperNoteFeature,
   UIFeature,
@@ -27,16 +28,32 @@ import { c } from 'ttag'
 
 type NoteTypeToEditorRowsMap = Record<NoteType, EditorMenuItem[]>
 
+/**
+ * Upstream marks these open-source (AGPL) editors as deprecated and hides them for new notes.
+ * Rite keeps offering them so people can write in Markdown, classic rich text and code.
+ */
+const RiteRestoredEditors: string[] = [
+  NativeFeatureIdentifier.TYPES.DeprecatedMarkdownProEditor,
+  NativeFeatureIdentifier.TYPES.DeprecatedMarkdownBasicEditor,
+  NativeFeatureIdentifier.TYPES.DeprecatedMarkdownMathEditor,
+  NativeFeatureIdentifier.TYPES.DeprecatedMarkdownVisualEditor,
+  NativeFeatureIdentifier.TYPES.DeprecatedPlusEditor,
+  NativeFeatureIdentifier.TYPES.DeprecatedCodeEditor,
+]
+
 const insertNativeEditorsInMap = (map: NoteTypeToEditorRowsMap, application: WebApplicationInterface): void => {
-  for (const editorFeature of GetIframeAndNativeEditors()) {
+  const restored = GetDeprecatedEditors().filter((editor) => RiteRestoredEditors.includes(editor.identifier))
+
+  for (const editorFeature of [...GetIframeAndNativeEditors(), ...restored]) {
     const isExperimental = application.features.isExperimentalFeature(editorFeature.identifier)
     if (isExperimental) {
       continue
     }
 
-    if (editorFeature.deprecated) {
+    if (editorFeature.deprecated && !RiteRestoredEditors.includes(editorFeature.identifier)) {
       continue
     }
+
 
     const noteType = editorFeature.note_type
     map[noteType].push({
@@ -59,6 +76,9 @@ const insertInstalledComponentsInMap = (map: NoteTypeToEditorRowsMap, applicatio
     const nativeFeature = FindNativeFeature(editor.identifier) as IframeComponentFeatureDescription
 
     if (nativeFeature) {
+      if (map[nativeFeature.note_type].some((row) => row.uiFeature.featureIdentifier === nativeFeature.identifier)) {
+        continue
+      }
       map[nativeFeature.note_type].push({
         isEntitled:
           application.features.getFeatureStatus(NativeFeatureIdentifier.create(nativeFeature.identifier).getValue()) ===

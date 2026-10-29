@@ -5,7 +5,7 @@ import DecoratedInput from '@/Components/Input/DecoratedInput'
 import Icon from '@/Components/Icon/Icon'
 import { useApplication } from '../ApplicationProvider'
 import ServerPicker from './ServerPicker/ServerPicker'
-import { DefaultHost } from '@standardnotes/snjs'
+import { isMegaHost } from '@/Rite/RiteSync'
 import { c } from 'ttag'
 
 type Props = {
@@ -27,7 +27,7 @@ const AdvancedOptions: FunctionComponent<Props> = ({
 
   const { server } = application.accountMenuController
 
-  const [showAdvanced, setShowAdvanced] = useState(server !== DefaultHost.Api)
+  const [showAdvanced, setShowAdvanced] = useState(!isMegaHost(server))
 
   const [isPrivateUsername, setIsPrivateUsername] = useState(false)
   const [privateUsername, setPrivateUsername] = useState('')

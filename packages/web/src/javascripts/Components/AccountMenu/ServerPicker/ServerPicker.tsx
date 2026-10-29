@@ -5,7 +5,7 @@ import Icon from '@/Components/Icon/Icon'
 import { useApplication } from '@/Components/ApplicationProvider'
 import { isDesktopApplication } from '@/Utils'
 import RadioButtonGroup from '@/Components/RadioButtonGroup/RadioButtonGroup'
-import { DefaultHost } from '@standardnotes/snjs'
+import { isMegaHost, RiteMegaHost } from '@/Rite/RiteSync'
 import { c } from 'ttag'
 
 type Props = {
@@ -15,16 +15,16 @@ type Props = {
 const ServerPicker = ({ className }: Props) => {
   const application = useApplication()
 
-  const [currentType, setCurrentType] = useState<ServerType>('standard')
-
+  const [currentType, setCurrentType] = useState<ServerType>('mega')
   const { server, setServer } = application.accountMenuController
+  const [customServer, setCustomServer] = useState(isMegaHost(server) ? '' : server)
 
   const determineServerType = useCallback(async () => {
     const homeServerUrl = await application.homeServer?.getHomeServerUrl()
     if (homeServerUrl && server === homeServerUrl) {
       setCurrentType('home server')
-    } else if (server === DefaultHost.Api) {
-      setCurrentType('standard')
+    } else if (isMegaHost(server)) {
+      setCurrentType('mega')
     } else {
       setCurrentType('custom')
     }
@@ -45,8 +45,13 @@ const ServerPicker = ({ className }: Props) => {
 
   const selectTab = async (type: ServerType) => {
     setCurrentType(type)
-    if (type === 'standard') {
-      handleSyncServerChange(DefaultHost.Api, DefaultHost.WebSocket)
+    if (type === 'mega') {
+      handleSyncServerChange(RiteMegaHost, '')
+    } else if (type === 'custom') {
+      // Keep the last custom address typed; never fall back to a third party's server.
+      if (customServer) {
+        handleSyncServerChange(customServer)
+      }
     } else if (type === 'home server') {
       if (!application.homeServer) {
         application.alerts
@@ -78,8 +83,8 @@ const ServerPicker = ({ className }: Props) => {
   const options = useMemo(
     () =>
       [
-        { label: c('B1.Account.SignIn.Option').t`Default`, value: 'standard' },
-        { label: c('B1.Account.SignIn.Option').t`Custom`, value: 'custom' },
+        { label: 'MEGA', value: 'mega' },
+        { label: c('B1.Account.SignIn.Option').t`Custom server`, value: 'custom' },
       ].concat(
         isDesktopApplication() ? [{ label: c('B1.Account.SignIn.Option').t`Home Server`, value: 'home server' }] : [],
       ) as {
@@ -94,16 +99,24 @@ const ServerPicker = ({ className }: Props) => {
       <div className="mb-2 flex font-bold">{c('B1.Account.SignIn.Label').t`Sync Server`}</div>
       <RadioButtonGroup value={currentType} items={options} onChange={selectTab} />
       {currentType === 'custom' && (
-        <DecoratedInput
-          className={{
-            container: 'mt-1',
-          }}
-          type="text"
-          left={[<Icon type="server" className="text-neutral" />]}
-          placeholder={DefaultHost.Api}
-          value={server}
-          onChange={handleSyncServerChange}
-        />
+        <>
+          <DecoratedInput
+            className={{
+              container: 'mt-1',
+            }}
+            type="text"
+            left={[<Icon type="server" className="text-neutral" />]}
+            placeholder="https://notes.example.com"
+            value={customServer}
+            onChange={(value: string) => {
+              setCustomServer(value)
+              handleSyncServerChange(value)
+            }}
+          />
+          <div className="mt-1 text-xs text-passive-1">
+            Any server compatible with the Standard Notes sync protocol, such as one you host yourself.
+          </div>
+        </>
       )}
     </div>
   )

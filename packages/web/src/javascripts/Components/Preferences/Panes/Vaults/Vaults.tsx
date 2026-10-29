@@ -14,7 +14,6 @@ import {
   ContentType,
   SharedVaultServiceEvent,
   VaultUserServiceEvent,
-  RoleName,
   ProtocolVersion,
   compareVersions,
   VaultInviteServiceEvent,
@@ -26,13 +25,16 @@ import EditVaultModal from './Vaults/VaultModal/EditVaultModal'
 import PreferencesPane from '../../PreferencesComponents/PreferencesPane'
 import { ToastType, addToast } from '@standardnotes/toast'
 import NoProSubscription from '../Account/NoProSubscription'
+import { isMegaHost } from '@/Rite/RiteSync'
 import { c } from 'ttag'
 
 const Vaults = observer(() => {
   const application = useApplication()
 
   const hasAccount = application.hasAccount()
-  const isSharedVaultsEnabled = application.featuresController.isEntitledToSharedVaults()
+  // Sharing vaults with other people needs a real sync server; the MEGA vault is single-owner.
+  const isSharedVaultsEnabled =
+    application.featuresController.isEntitledToSharedVaults() && !isMegaHost(application.getHost.execute().getValue())
 
   const [vaults, setVaults] = useState<VaultListingInterface[]>([])
   const [canCreateMoreVaults, setCanCreateMoreVaults] = useState(true)
@@ -51,24 +53,15 @@ const Vaults = observer(() => {
 
   const vaultService = application.vaults
   const contactService = application.contacts
-  const featuresService = application.features
 
   const updateVaults = useCallback(async () => {
     const vaults = vaultService.getVaults()
-    const ownedVaults = vaults.filter((vault) => {
-      return !vault.isSharedVaultListing() ? true : application.vaultUsers.isCurrentUserSharedVaultOwner(vault)
-    })
 
-    if (featuresService.hasMinimumRole(RoleName.NAMES.ProUser)) {
-      setCanCreateMoreVaults(true)
-    } else if (featuresService.hasMinimumRole(RoleName.NAMES.PlusUser)) {
-      setCanCreateMoreVaults(ownedVaults.length < 3)
-    } else {
-      setCanCreateMoreVaults(ownedVaults.length < 1)
-    }
+    // Rite has no plan-based vault limits.
+    setCanCreateMoreVaults(true)
 
     setVaults(vaults)
-  }, [vaultService, featuresService, application.vaultUsers])
+  }, [vaultService])
 
   const updateInvites = useCallback(async () => {
     setInvites(application.vaultInvites.getCachedPendingInviteRecords())

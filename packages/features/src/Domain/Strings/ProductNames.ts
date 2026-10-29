@@ -1,4 +1,4 @@
-export const AppName = 'Standard Notes'
+export const AppName = 'Rite'
 
 export const ListedName = 'Listed'
 export const SuperName = 'Super'
