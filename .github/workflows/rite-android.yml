@@ -1,0 +1,139 @@
+name: Rite — build Android APK
+
+# Builds a signed, installable Rite APK.
+# - Every push to main and every manual run: the APK is attached to the run as an artifact.
+# - Pushing a tag like v1.0.0: the APK is also published as a GitHub Release.
+#
+# Signing: add these repository secrets to sign with your own key (recommended, see RITE.md):
+#   RITE_KEYSTORE_BASE64, RITE_KEYSTORE_PASSWORD, RITE_KEYSTORE_ALIAS, RITE_KEYSTORE_KEY_PASSWORD
+# Without them the APK is signed with the repository's debug key (fine for personal use).
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rite-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: corepack enable
+      - run: yarn install --immutable
+      - name: Build shared packages
+        run: yarn build:snjs
+      - name: Rite sync server tests
+        working-directory: packages/api
+        run: npx jest src/Domain/Http/Rite
+      - name: Rite MEGA storage tests
+        working-directory: packages/web
+        run: npx jest src/javascripts/Rite
+      - name: Rite editor tests
+        run: node packages/web/rite-editors/tests/run.js
+
+  android:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '17'
+
+      - name: Android SDK packages
+        run: echo "y" | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "RITE_VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_ENV"
+          else
+            echo "RITE_VERSION=0.1.${{ github.run_number }}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Increase file watchers (React Native)
+        run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+
+      - run: corepack enable
+      - run: yarn install --immutable
+
+      - name: Build the web app
+        run: yarn build:web
+
+      - name: Bundle the web app and JavaScript into the Android project
+        working-directory: packages/mobile
+        run: |
+          yarn bundle:web
+          yarn android:bundle
+
+      - name: Use your signing key (if configured)
+        env:
+          RITE_KEYSTORE_BASE64: ${{ secrets.RITE_KEYSTORE_BASE64 }}
+        if: env.RITE_KEYSTORE_BASE64 != ''
+        run: echo "$RITE_KEYSTORE_BASE64" | base64 -d > packages/mobile/android/app/rite-release.keystore
+
+      - name: Build APK
+        working-directory: packages/mobile/android
+        env:
+          RITE_KEYSTORE_PASSWORD: ${{ secrets.RITE_KEYSTORE_PASSWORD }}
+          RITE_KEYSTORE_ALIAS: ${{ secrets.RITE_KEYSTORE_ALIAS }}
+          RITE_KEYSTORE_KEY_PASSWORD: ${{ secrets.RITE_KEYSTORE_KEY_PASSWORD }}
+        run: ./gradlew assembleProdRelease -PversionName="$RITE_VERSION" -PversionCode="${{ github.run_number }}" --no-daemon
+
+      - name: Name the APK
+        run: |
+          mkdir -p out
+          cp packages/mobile/android/app/build/outputs/apk/prod/release/app-prod-release.apk "out/Rite-$RITE_VERSION.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Rite-${{ env.RITE_VERSION }}-apk
+          path: out/*.apk
+          retention-days: 30
+
+      - name: Publish release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Rite ${{ env.RITE_VERSION }}
+          files: out/*.apk
+          generate_release_notes: true
+
+  web:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn build:web
+      - name: Package the web app
+        run: cd packages/web/dist && zip -qr ../../../Rite-web.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Rite-web
+          path: Rite-web.zip
+          retention-days: 30

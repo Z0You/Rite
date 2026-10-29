@@ -1,0 +1,1 @@
+Workflows inherited from Standard Notes. They publish to Standard Notes accounts and stores, so they are kept here (where GitHub does not run them) for reference only. Rite builds with .github/workflows/rite-android.yml.

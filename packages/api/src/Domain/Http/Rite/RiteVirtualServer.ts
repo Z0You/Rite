@@ -40,6 +40,29 @@ const InvalidLoginMessage = 'Invalid email or password.'
  * ciphertext. The server password received here is a value derived with Argon2id from the
  * user's password; it is stored only as a salted SHA-256 hash.
  */
+/**
+ * Optional item fields are omitted rather than sent as null: the client treats any value other
+ * than `undefined` (for example `key_system_identifier: null`) as "this item belongs to a vault".
+ */
+const OptionalItemFields = [
+  'items_key_id',
+  'auth_hash',
+  'duplicate_of',
+  'key_system_identifier',
+  'shared_vault_uuid',
+  'last_edited_by_uuid',
+] as const
+
+export function publicItem(item: VaultItem): VaultItem {
+  const copy = { ...item }
+  for (const field of OptionalItemFields) {
+    if (copy[field] === null || copy[field] === undefined) {
+      delete copy[field]
+    }
+  }
+  return copy
+}
+
 export class RiteVirtualServer implements RequestHandlerInterface {
   private queue: Promise<unknown> = Promise.resolve()
   private codeChallenges = new Map<string, string>()
@@ -70,6 +93,7 @@ export class RiteVirtualServer implements RequestHandlerInterface {
         const challengesSnapshot = new Map(this.codeChallenges)
         const state = (await this.storage.load()) ?? createEmptyVault()
         const result = await this.route(state, context)
+        this.debugTrace(context, result, attempt)
 
         if (result.changed) {
           try {
@@ -95,6 +119,34 @@ export class RiteVirtualServer implements RequestHandlerInterface {
         this.error(HttpStatusCode.InternalServerError, `${this.storage.displayName} sync failed: ${message}`),
       )
     }
+  }
+
+  /** Opt-in request trace for troubleshooting: set `window.__riteDebugSync = true` in the console. */
+  private debugTrace(context: RouteContext, result: RouteResult, attempt: number): void {
+    if (!(globalThis as { __riteDebugSync?: boolean }).__riteDebugSync) {
+      return
+    }
+    const short = (value: unknown) => (typeof value === 'string' ? value.slice(0, 8) : String(value))
+    const items = Array.isArray(context.params.items) ? (context.params.items as Params[]) : []
+    const data = (result.data ?? {}) as Params
+    const list = (value: unknown) =>
+      Array.isArray(value)
+        ? (value as Params[]).map((item) => {
+            const inner = (item.server_item ?? item.unsaved_item ?? item) as Params
+            return `${item.type ? item.type + ':' : ''}${short(inner.uuid)}@${inner.updated_at_timestamp}`
+          })
+        : []
+    // eslint-disable-next-line no-console
+    console.debug(
+      `[Rite sync] ${context.verb} ${context.path} → ${result.status}` +
+        (attempt > 1 ? ` (attempt ${attempt})` : '') +
+        (items.length ? ` | sent ${items.map((i) => `${short(i.uuid)}@${i.updated_at_timestamp}`).join(', ')}` : '') +
+        (Array.isArray(data.saved_items) ? ` | saved ${list(data.saved_items).join(', ')}` : '') +
+        (Array.isArray(data.conflicts) && data.conflicts.length ? ` | CONFLICTS ${list(data.conflicts).join(', ')}` : '') +
+        (Array.isArray(data.retrieved_items) && data.retrieved_items.length
+          ? ` | retrieved ${list(data.retrieved_items).join(', ')}`
+          : ''),
+    )
   }
 
   private extractPath(url: string): string {
@@ -165,7 +217,7 @@ export class RiteVirtualServer implements RequestHandlerInterface {
     const { user, session } = auth
     const withUser = (result: RouteResult): RouteResult => ({ ...result, userUuid: user.uuid })
 
-    if (post && path === '/v1/items/sync') {
+    if (post && (path === '/v1/items' || path === '/v1/items/sync')) {
       return withUser(this.sync(state, user, ctx.params))
     }
     if (post && path === '/v1/items/check-integrity') {
@@ -182,7 +234,7 @@ export class RiteVirtualServer implements RequestHandlerInterface {
       if (!item || item.user_uuid !== user.uuid) {
         return this.error(404, 'Item not found.')
       }
-      return withUser(this.ok({ item }))
+      return withUser(this.ok({ item: publicItem(item) }))
     }
 
     if (/^\/v[12]\/items\/[0-9a-f-]+\/revisions(\/.*)?$/i.test(path)) {
@@ -262,6 +314,8 @@ export class RiteVirtualServer implements RequestHandlerInterface {
       return withUser(this.ok(path === '/v1/shared-vaults' ? { sharedVaults: [] } : { invites: [] }))
     }
 
+    // eslint-disable-next-line no-console
+    console.warn(`[Rite] ${this.storage.displayName} sync does not support ${verb} ${path}`)
     return this.error(
       HttpStatusCode.BadRequest,
       `This feature is not available when syncing with ${this.storage.displayName}.`,
@@ -510,9 +564,11 @@ export class RiteVirtualServer implements RequestHandlerInterface {
     const hasMore = candidates.length > limit
 
     const data: Params = {
-      retrieved_items: retrieved,
-      saved_items: savedItems,
-      conflicts,
+      retrieved_items: retrieved.map(publicItem),
+      saved_items: savedItems.map(publicItem),
+      conflicts: conflicts.map((conflict) =>
+        conflict.server_item ? { ...conflict, server_item: publicItem(conflict.server_item as VaultItem) } : conflict,
+      ),
       unsaved: [],
       sync_token: this.encodeToken(state.clock),
     }

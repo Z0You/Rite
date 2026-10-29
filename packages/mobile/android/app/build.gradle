@@ -83,7 +83,8 @@ android {
 
     namespace "com.standardnotes"
     defaultConfig {
-        applicationId "com.standardnotes"
+        // Rite installs alongside (not over) other apps. The Java namespace below stays as-is.
+        applicationId "app.rite.notes"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
 
@@ -101,10 +102,19 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile file('keystore.keystore')
-            keyAlias System.getenv("ANDROID_KEYSTORE_ALIAS")
-            keyPassword System.getenv("ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
-            storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            // Uses your own key when the RITE_KEYSTORE_* variables are set (GitHub secrets in CI).
+            // Otherwise falls back to the repository's debug key so builds still install and update.
+            if (System.getenv("RITE_KEYSTORE_PASSWORD")) {
+                storeFile file('rite-release.keystore')
+                keyAlias System.getenv("RITE_KEYSTORE_ALIAS")
+                keyPassword System.getenv("RITE_KEYSTORE_KEY_PASSWORD")
+                storePassword System.getenv("RITE_KEYSTORE_PASSWORD")
+            } else {
+                storeFile file('debug.keystore')
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
         }
     }
     productFlavors {

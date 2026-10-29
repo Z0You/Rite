@@ -33,7 +33,6 @@
         tools:targetApi="n"
         android:supportsRtl="true">
 
-        <meta-data android:name="asset_statements" android:resource="@string/asset_statements" />
 
          <activity
             android:name=".MainActivity"

@@ -1,9 +1,3 @@
 <resources>
-    <string name="app_name">Standard Notes</string>
-
-    <string name="asset_statements" translatable="false">
-[{
-  \"include\": \"https://app.standardnotes.com/.well-known/assetlinks.json\"
-}]
-</string>
+    <string name="app_name">Rite</string>
 </resources>

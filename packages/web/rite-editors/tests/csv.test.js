@@ -1,0 +1,10 @@
+const C = require('../spreadsheet/csv.js'); const assert = require('assert')
+assert.deepStrictEqual(C.parse('a,b\r\n"x, y","he said ""hi"""\n1,2'), [['a','b'],['x, y','he said "hi"'],['1','2']])
+assert.deepStrictEqual(C.parse('a;b;c\n1;2;3'), [['a','b','c'],['1','2','3']])
+assert.deepStrictEqual(C.parse('﻿name\tqty\napple\t3'), [['name','qty'],['apple','3']])
+assert.deepStrictEqual(C.parse('"multi\nline",x'), [['multi\nline','x']])
+const rows=[['Item','Price'],['Coffee, large','3.5'],['Quote "x"','']]
+assert.deepStrictEqual(C.parse(C.stringify(rows)), rows)
+const sheet=C.rowsToSheet('S',rows); assert.deepStrictEqual(C.sheetToRows(sheet), rows)
+assert.strictEqual(sheet.rows[1].cells[0].text,'Coffee, large')
+console.log('All CSV tests passed')
