@@ -18,6 +18,7 @@ import { Paths } from '../Server/Auth/Paths'
 import { SessionRefreshResponseBody } from '../Response/Auth/SessionRefreshResponseBody'
 import { FetchRequestHandler } from './FetchRequestHandler'
 import { RequestHandlerInterface } from './RequestHandlerInterface'
+import { getRiteRequestHandler, isRiteStorageHost, riteHostOfUrl } from './Rite/RiteStorageHosts'
 import { HttpRequestOptions } from './HttpRequestOptions'
 
 export class HttpService implements HttpServiceInterface {
@@ -163,7 +164,11 @@ export class HttpService implements HttpServiceInterface {
       httpRequest.authentication = this.getSessionAccessToken()
     }
 
-    const response = await this.requestHandler.handleRequest<T>(httpRequest)
+    const handler =
+      !httpRequest.external && isRiteStorageHost(httpRequest.url)
+        ? getRiteRequestHandler(riteHostOfUrl(httpRequest.url))
+        : this.requestHandler
+    const response = await handler.handleRequest<T>(httpRequest)
 
     if (this.loggingEnabled && isErrorResponse(response)) {
       this.logger.error('Request failed', httpRequest, response)
