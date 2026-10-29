@@ -1,0 +1,18 @@
+Rite
+Copyright (C) Rite contributors
+
+Rite is a modified version of Standard Notes (https://github.com/standardnotes/app),
+Copyright (C) Standard Notes Ltd. and contributors, licensed under the GNU Affero General
+Public License v3.0. Rite is distributed under the same license (see LICENSE).
+
+Main modifications (see RITE.md): MEGA-backed sync through an in-app sync server, all
+built-in features available without a subscription, Rite's own Authenticator and Spreadsheet
+editors, removal of editors without an open-source license, and new branding.
+
+"Standard Notes" is a name of Standard Notes Ltd. Rite is not affiliated with or endorsed by
+Standard Notes Ltd.
+
+Third-party components added by Rite:
+  megajs              MIT License         https://github.com/qgustavor/mega
+  x-data-spreadsheet  MIT License         https://github.com/myliang/x-spreadsheet
+  jsQR                Apache License 2.0  https://github.com/cozmo/jsQR
