@@ -70,7 +70,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-prettier": "^5.0.0",
     "lint-staged": "^13.2.3",
-    "npm-check-updates": "^16.10.17",
+    "npm-check-updates": "^23.1.1",
     "prettier": "3.0.0",
     "sass-loader": "^13.3.2",
     "ttag-cli": "^1.11.2",

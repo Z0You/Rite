@@ -9635,7 +9635,7 @@ __metadata:
     eslint: ^8.57.0
     eslint-plugin-prettier: ^5.0.0
     lint-staged: ^13.2.3
-    npm-check-updates: ^16.10.17
+    npm-check-updates: ^23.1.1
     prettier: 3.0.0
     sass-loader: ^13.3.2
     ttag-cli: ^1.11.2
@@ -25486,7 +25486,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"npm-check-updates@npm:*, npm-check-updates@npm:^16.10.17":
+"npm-check-updates@npm:*":
   version: 16.10.17
   resolution: "npm-check-updates@npm:16.10.17"
   dependencies:
@@ -25524,6 +25524,16 @@ __metadata:
     ncu: build/src/bin/cli.js
     npm-check-updates: build/src/bin/cli.js
   checksum: 5594baff3fe723b48f711a90ccf03a2abc64d49a0306b14f1c07b62a176b03ab7cb8bb408f75134cb1606f5dbc24d0a2f12d272c86f60471e61d20b0ec998bb8
+  languageName: node
+  linkType: hard
+
+"npm-check-updates@npm:^23.1.1":
+  version: 23.1.1
+  resolution: "npm-check-updates@npm:23.1.1"
+  bin:
+    ncu: build/cli.js
+    npm-check-updates: build/cli.js
+  checksum: f5a1a274bb632eb2fa0d3093694faa6bf52b61b4b755f6cd8b1c57b7de5b612ed9896e4ba9145f792b348859230728d1f169061081a73a5fab54c6b59ba67b61
   languageName: node
   linkType: hard
 
