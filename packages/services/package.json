@@ -30,7 +30,7 @@
     "ttag": "^1.8.12"
   },
   "devDependencies": {
-    "@types/jest": "^29.2.3",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.2.5",
     "@typescript-eslint/eslint-plugin": "*",
     "@typescript-eslint/parser": "*",
