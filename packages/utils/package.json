@@ -35,7 +35,7 @@
     "@types/jest": "^29.2.3",
     "@types/jsdom": "^20.0.1",
     "@types/lodash": "^4.14.189",
-    "@types/node": "^18.11.9",
+    "@types/node": "^26.6.5",
     "@typescript-eslint/eslint-plugin": "*",
     "eslint": "*",
     "eslint-plugin-prettier": "*",
