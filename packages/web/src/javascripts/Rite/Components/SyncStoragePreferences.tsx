@@ -8,6 +8,7 @@ import HorizontalSeparator from '@/Components/Shared/HorizontalSeparator'
 import Button from '@/Components/Button/Button'
 import { WebApplication } from '@/Application/WebApplication'
 import StorageConnectForm from './StorageConnectForm'
+import CheckConnection from './CheckConnection'
 import { useStorageConnection } from './SyncStoragePanel'
 import { getStorageProviders, providerForHost, StorageProvider } from '../RiteSync'
 import { moveVault } from '../MoveVault'
@@ -59,6 +60,7 @@ const SyncStoragePreferences: FunctionComponent<Props> = ({ application }) => {
             <StorageConnectForm provider={current} />
           </div>
         )}
+        {isConnected && <CheckConnection provider={current} />}
         {lastMove && <div className="mt-2 text-sm text-success">{lastMove}</div>}
       </PreferencesSegment>
 

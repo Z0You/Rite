@@ -77,6 +77,9 @@ def main():
         a.get_by_placeholder("MEGA password").fill("mega-pass")
         a.get_by_role("button", name="Connect MEGA").last.click()
         a.get_by_text("Connected as").wait_for(timeout=15000)
+        a.get_by_role("button", name="Check connection").click()
+        check(wait_for(lambda: a.get_by_text('"Rite" folder: NOT FOUND', exact=False).count() > 0),
+              "check connection works before an account exists")
         a.get_by_placeholder("Email").fill(EMAIL)
         a.get_by_placeholder("Password").fill(PASSWORD)
         a.get_by_role("button", name="Next").click()
@@ -109,6 +112,11 @@ def main():
         a.get_by_role("button", name="Connect MEGA").last.click()
         shot(a, "reconnect-form")
         check(wait_for(lambda: len(notes(drive)) == 2, timeout=60), "after reconnecting, the waiting note syncs to MEGA")
+        a.get_by_role("button", name="Check connection").click()
+        check(wait_for(lambda: a.get_by_text("this account: yes", exact=False).count() > 0),
+              "check connection finds this account in the vault")
+        shot(a, "check-connection")
+        print(a.locator("pre").first.inner_text())
         a.keyboard.press("Escape")
         check(wait_for(lambda: a.get_by_text("Syncing with MEGA is paused").count() == 0, timeout=40),
               "the notice goes away once syncing works")

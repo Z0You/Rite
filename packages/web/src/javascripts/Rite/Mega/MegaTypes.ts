@@ -19,6 +19,7 @@ export interface MegaNode {
 
 export interface MegaStorage {
   root: MegaNode
+  user?: string
   ready: Promise<unknown>
   reload(force?: boolean): Promise<unknown>
   toJSON(): MegaSessionJSON

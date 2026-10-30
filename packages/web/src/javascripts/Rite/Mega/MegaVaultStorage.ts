@@ -19,6 +19,23 @@ export class MegaDrive implements CloudDrive {
     }
     return folder ? new MegaFolder(folder) : undefined
   }
+
+  async describe(): Promise<string[]> {
+    const storage = await this.account.openStorage()
+    // megajs keeps every node it received in `files`, keyed by node id.
+    const files = (storage as unknown as { files?: unknown }).files
+    const nodes: MegaNode[] =
+      files instanceof Map ? [...files.values()] : Object.values((files ?? {}) as Record<string, MegaNode>)
+    const unnamed = nodes.filter((node) => !node.name).length
+    const top = storage.root?.children ?? []
+    const riteLike = top.filter((child) => child.directory && (child.name ?? '').toLowerCase().includes('rite'))
+    return [
+      `MEGA items received: ${nodes.length} (${unnamed} without a readable name)`,
+      `Cloud Drive found: ${storage.root ? 'yes' : 'NO'}; items at its top level: ${top.length}`,
+      `User handle known: ${storage.user ? 'yes' : 'NO'}`,
+      `Top-level folders whose name contains "rite": ${riteLike.map((child) => `"${child.name}"`).join(', ') || 'none'}`,
+    ]
+  }
 }
 
 class MegaFolder implements DriveFolder {

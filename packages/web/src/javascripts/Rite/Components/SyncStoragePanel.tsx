@@ -3,6 +3,7 @@ import { FunctionComponent, useCallback, useEffect, useState } from 'react'
 import Icon from '@/Components/Icon/Icon'
 import { useApplication } from '@/Components/ApplicationProvider'
 import StorageConnectForm from './StorageConnectForm'
+import CheckConnection from './CheckConnection'
 import { getStorageProviders, providerForHost, StorageProvider } from '../RiteSync'
 
 /** Re-renders when the provider's account connects or disconnects. */
@@ -93,6 +94,7 @@ const SyncStoragePanel: FunctionComponent<Props> = ({ hint }) => {
         <div className="mt-1 text-passive-1">
           Connected as <span className="font-medium text-text">{email}</span>. Your encrypted notes are kept in the
           “Rite” folder of this {provider.name} account.
+          <CheckConnection provider={provider} />
         </div>
       ) : showForm ? (
         <StorageConnectForm

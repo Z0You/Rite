@@ -6,10 +6,11 @@ import {
   VaultStorageInterface,
 } from '@standardnotes/snjs'
 import { MegaAccount } from './Mega/MegaAccount'
-import { MegaVaultStorage } from './Mega/MegaVaultStorage'
+import { MegaDrive, MegaVaultStorage } from './Mega/MegaVaultStorage'
+import { CloudDrive } from './Drive/DriveTypes'
 import { MegaModuleLoader } from './Mega/MegaTypes'
 import { FilenAccount } from './Filen/FilenAccount'
-import { FilenVaultStorage } from './Filen/FilenVaultStorage'
+import { FilenDrive, FilenVaultStorage } from './Filen/FilenVaultStorage'
 import { FilenModuleLoader } from './Filen/FilenTypes'
 
 export { RiteMegaHost, RiteFilenHost }
@@ -35,6 +36,7 @@ export type StorageProvider = {
   website: string
   account: CloudAccount
   createStorage(): VaultStorageInterface
+  createDrive(): CloudDrive
 }
 
 type TestLoaders = { __riteMegaModuleLoader?: MegaModuleLoader; __riteFilenModuleLoader?: FilenModuleLoader }
@@ -71,6 +73,7 @@ export function getStorageProviders(): StorageProvider[] {
         website: 'mega.nz',
         account: getMegaAccount(),
         createStorage: () => new MegaVaultStorage(getMegaAccount()),
+        createDrive: () => new MegaDrive(getMegaAccount()),
       },
       {
         id: 'filen',
@@ -79,6 +82,7 @@ export function getStorageProviders(): StorageProvider[] {
         website: 'filen.io',
         account: getFilenAccount(),
         createStorage: () => new FilenVaultStorage(getFilenAccount()),
+        createDrive: () => new FilenDrive(getFilenAccount()),
       },
     ]
   }

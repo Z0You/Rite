@@ -26,4 +26,6 @@ export interface CloudDrive {
   readonly displayName: string
   /** The named folder at the top of the drive; created when `create` is true and it is missing. */
   openFolder(name: string, create: boolean): Promise<DriveFolder | undefined>
+  /** Service-specific facts for the "Check connection" report (no secrets, no note contents). */
+  describe?(): Promise<string[]>
 }
