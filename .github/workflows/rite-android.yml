@@ -112,7 +112,7 @@ jobs:
 
       - name: Publish release (tags only)
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: Rite ${{ env.RITE_VERSION }}
           files: out/*.apk
