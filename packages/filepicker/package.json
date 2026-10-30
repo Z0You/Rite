@@ -20,7 +20,7 @@
     "@typescript-eslint/eslint-plugin": "*",
     "eslint": "*",
     "eslint-plugin-prettier": "*",
-    "jest": "^29.3.1",
+    "jest": "^30.5.2",
     "ts-jest": "^29.0.3",
     "ts-node": "^10.9.1",
     "typescript": "5.8.3"
