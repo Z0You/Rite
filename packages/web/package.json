@@ -58,7 +58,7 @@
     "@types/wicg-file-system-access": "^2023.10.4",
     "@zip.js/zip.js": "^2.6.60",
     "autoprefixer": "^10.4.13",
-    "babel-loader": "^9.1.2",
+    "babel-loader": "^10.1.1",
     "circular-dependency-plugin": "^5.2.2",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "*",
