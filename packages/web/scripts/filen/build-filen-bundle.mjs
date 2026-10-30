@@ -30,7 +30,12 @@ await esbuild.build({
   entryPoints: [entry],
   outfile: outFile,
   bundle: true,
-  format: 'esm',
+  // The SDK is wrapped in a function (IIFE) and only FilenSDK is exported from it. As a plain ES
+  // module, webpack's unused-code analysis wrongly strips the base class of a hashing class
+  // that the SDK builds while loading, which breaks it with "Super constructor null of
+  // anonymous class is not a constructor". Inside a function webpack leaves the code alone.
+  format: 'iife',
+  globalName: '__riteFilenSdk',
   platform: 'browser',
   target: 'es2019',
   minify: true,
@@ -51,6 +56,9 @@ await esbuild.build({
     url: resolveFrom('url/'),
     buffer: resolveFrom('buffer/'),
     util: resolveFrom('util/'),
+  },
+  footer: {
+    js: 'export const FilenSDK = __riteFilenSdk.FilenSDK;',
   },
   banner: {
     js: `/* Filen SDK ${sdkVersion} (https://github.com/FilenCloudDienste/filen-sdk-ts), AGPL-3.0. Browser bundle built for Rite by scripts/filen/build-filen-bundle.mjs. */`,

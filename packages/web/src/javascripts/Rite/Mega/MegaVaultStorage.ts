@@ -29,7 +29,24 @@ export class MegaDrive implements CloudDrive {
     const unnamed = nodes.filter((node) => !node.name).length
     const top = storage.root?.children ?? []
     const riteLike = top.filter((child) => child.directory && (child.name ?? '').toLowerCase().includes('rite'))
+    // Ask MEGA directly which account this session belongs to and how much space it uses, to
+    // tell "a different / empty account" apart from "files exist but were not listed".
+    const api = (storage as unknown as { api?: { request(json: object): Promise<Record<string, unknown>> } }).api
+    let owner = 'unknown'
+    let used = 'unknown'
+    try {
+      const user = await api?.request({ a: 'ug' })
+      owner = typeof user?.email === 'string' ? user.email : 'unknown'
+      const quota = await api?.request({ a: 'uq', strg: 1 })
+      if (typeof quota?.cstrg === 'number') {
+        used = `${quota.cstrg} bytes`
+      }
+    } catch (error) {
+      owner = `error: ${error instanceof Error ? error.message : String(error)}`
+    }
     return [
+      `MEGA says this session belongs to: ${owner}`,
+      `MEGA storage used by this account: ${used}`,
       `MEGA items received: ${nodes.length} (${unnamed} without a readable name)`,
       `Cloud Drive found: ${storage.root ? 'yes' : 'NO'}; items at its top level: ${top.length}`,
       `User handle known: ${storage.user ? 'yes' : 'NO'}`,
