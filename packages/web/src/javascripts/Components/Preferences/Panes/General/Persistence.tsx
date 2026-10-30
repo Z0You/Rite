@@ -1,0 +1,66 @@
+import { WebApplication } from '@/Application/WebApplication'
+import StyledRadioInput from '@/Components/Radio/StyledRadioInput'
+import { useState } from 'react'
+import { Title, Text } from '../../PreferencesComponents/Content'
+import PreferencesGroup from '../../PreferencesComponents/PreferencesGroup'
+import PreferencesSegment from '../../PreferencesComponents/PreferencesSegment'
+import { c } from 'ttag'
+
+type Props = {
+  application: WebApplication
+}
+
+export const ShouldPersistNoteStateKey = 'ShouldPersistNoteState'
+
+const Persistence = ({ application }: Props) => {
+  const [shouldPersistNoteState, setShouldPersistNoteState] = useState(
+    application.getValue<boolean>(ShouldPersistNoteStateKey),
+  )
+
+  const toggleStatePersistence = (shouldPersist: boolean) => {
+    application.setValue(ShouldPersistNoteStateKey, shouldPersist)
+    setShouldPersistNoteState(shouldPersist)
+
+    if (shouldPersist) {
+      application.persistence.persistCurrentState()
+    } else {
+      application.persistence.clearPersistedValues()
+    }
+  }
+
+  return (
+    <PreferencesGroup>
+      <PreferencesSegment>
+        <Title className="mb-2">{c('B6.Preferences.General.Title').t`When opening the app, show...`}</Title>
+        <label className="mb-2 flex items-center gap-2 text-base font-medium md:text-sm">
+          <StyledRadioInput
+            name="state-persistence"
+            checked={!shouldPersistNoteState}
+            onChange={(event) => {
+              toggleStatePersistence(!event.target.checked)
+            }}
+          />
+          {c('B6.Preferences.General.Info').t`The first note in the list`}
+        </label>
+        <label className="flex items-center gap-2 text-base font-medium md:text-sm">
+          <StyledRadioInput
+            name="state-persistence"
+            checked={!!shouldPersistNoteState}
+            onChange={(event) => {
+              toggleStatePersistence(event.target.checked)
+            }}
+          />
+          {c('B6.Preferences.General.Label').t`The last viewed note`}
+        </label>
+        {application.isNativeMobileWeb() && (
+          <Text className="mt-2">
+            {c('B6.Preferences.General.Info')
+              .t`Only applies to web and desktop apps. On mobile, notes don't open automatically at launch.`}
+          </Text>
+        )}
+      </PreferencesSegment>
+    </PreferencesGroup>
+  )
+}
+
+export default Persistence

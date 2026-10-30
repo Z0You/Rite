@@ -1,0 +1,36 @@
+import { $setBlocksType } from '@lexical/selection'
+import { $getSelection, $isRangeSelection, LexicalEditor } from 'lexical'
+import { $createCodeNode } from '@lexical/code'
+import { LexicalIconName } from '@/Components/Icon/LexicalIcons'
+import { BlockPickerOption } from '../BlockPickerPlugin/BlockPickerOption'
+import { c } from 'ttag'
+
+export const CodeBlock = {
+  get name() {
+    return c('B3.Notes.EditorToolbar.Label').t`Code Block`
+  },
+  iconName: 'code' as LexicalIconName,
+  keywords: ['javascript', 'python', 'js', 'codeblock'],
+  onSelect: (editor: LexicalEditor) =>
+    editor.update(() => {
+      const selection = $getSelection()
+      if ($isRangeSelection(selection)) {
+        if (selection.isCollapsed()) {
+          $setBlocksType(selection, () => $createCodeNode('plain'))
+        } else {
+          const textContent = selection.getTextContent()
+          const codeNode = $createCodeNode('plain')
+          selection.insertNodes([codeNode])
+          selection.insertRawText(textContent)
+        }
+      }
+    }),
+}
+
+export function GetCodeBlockOption(editor: LexicalEditor) {
+  return new BlockPickerOption(CodeBlock.name, {
+    iconName: CodeBlock.iconName,
+    keywords: CodeBlock.keywords,
+    onSelect: () => CodeBlock.onSelect(editor),
+  })
+}

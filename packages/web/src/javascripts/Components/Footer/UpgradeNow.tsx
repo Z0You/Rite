@@ -1,0 +1,51 @@
+import { WebApplication } from '@/Application/WebApplication'
+import { FeaturesController } from '@/Controllers/FeaturesController'
+import { SubscriptionController } from '@/Controllers/Subscription/SubscriptionController'
+import { observer } from 'mobx-react-lite'
+import { useCallback } from 'react'
+import { c } from 'ttag'
+
+type Props = {
+  application: WebApplication
+  featuresController: FeaturesController
+  subscriptionContoller: SubscriptionController
+}
+
+const UpgradeNow = ({ application, featuresController, subscriptionContoller }: Props) => {
+  const shouldShowCTA = !featuresController.hasFolders
+  const hasAccount = subscriptionContoller.hasAccount
+  const hasAccessToFeatures = subscriptionContoller.hasFirstPartyOnlineOrOfflineSubscription()
+
+  const onClick = useCallback(() => {
+    if (hasAccount && application.isNativeIOS()) {
+      application.showPremiumModal()
+    } else if (!application.canShowPurchaseFlow() && !hasAccount) {
+      application.showAccountMenu()
+    } else {
+      void application.openPurchaseFlow()
+    }
+  }, [application, hasAccount])
+
+  if (!shouldShowCTA || hasAccessToFeatures) {
+    return null
+  }
+
+  if (!application.canShowPurchaseFlow() && hasAccount) {
+    return null
+  }
+
+  return (
+    <div className="flex h-full items-center px-2">
+      <button
+        className="rounded bg-info px-1.5 py-0.5 text-sm font-bold uppercase text-info-contrast hover:brightness-125 lg:text-xs"
+        onClick={onClick}
+      >
+        {!hasAccount
+          ? c('B7.FilesSubscriptionHelp.Subscription.Info').t`Sign up to sync`
+          : c('B7.FilesSubscriptionHelp.Subscription.Info').t`Unlock features`}
+      </button>
+    </div>
+  )
+}
+
+export default observer(UpgradeNow)

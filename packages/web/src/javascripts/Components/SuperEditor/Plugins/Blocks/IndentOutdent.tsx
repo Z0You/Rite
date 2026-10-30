@@ -1,0 +1,38 @@
+import { INDENT_CONTENT_COMMAND, OUTDENT_CONTENT_COMMAND, LexicalEditor } from 'lexical'
+import { BlockPickerOption } from '../BlockPickerPlugin/BlockPickerOption'
+import { LexicalIconName } from '@/Components/Icon/LexicalIcons'
+import { c } from 'ttag'
+
+export const IndentBlock = {
+  get name() {
+    return c('B3.Notes.EditorToolbar.Action').t`Indent`
+  },
+  iconName: 'indent',
+  keywords: ['indent'],
+  onSelect: (editor: LexicalEditor) => editor.dispatchCommand(INDENT_CONTENT_COMMAND, undefined),
+}
+
+export const OutdentBlock = {
+  get name() {
+    return c('B3.Notes.EditorToolbar.Action').t`Outdent`
+  },
+  iconName: 'outdent',
+  keywords: ['outdent'],
+  onSelect: (editor: LexicalEditor) => editor.dispatchCommand(OUTDENT_CONTENT_COMMAND, undefined),
+}
+
+export function GetIndentBlockOption(editor: LexicalEditor) {
+  return new BlockPickerOption(IndentBlock.name, {
+    iconName: IndentBlock.iconName as LexicalIconName,
+    keywords: IndentBlock.keywords,
+    onSelect: () => IndentBlock.onSelect(editor),
+  })
+}
+
+export function GetOutdentBlockOption(editor: LexicalEditor) {
+  return new BlockPickerOption(OutdentBlock.name, {
+    iconName: OutdentBlock.iconName as LexicalIconName,
+    keywords: OutdentBlock.keywords,
+    onSelect: () => OutdentBlock.onSelect(editor),
+  })
+}

@@ -1,0 +1,110 @@
+import { doesItemMatchSearchQuery } from '@/Utils/Items/Search/doesItemMatchSearchQuery'
+import { c } from 'ttag'
+import {
+  Combobox,
+  ComboboxItem,
+  ComboboxPopover,
+  ComboboxStoreProps,
+  useComboboxStore,
+  VisuallyHidden,
+} from '@ariakit/react'
+import { classNames, DecryptedItem, naturalSort } from '@standardnotes/snjs'
+import { observer } from 'mobx-react-lite'
+import { useDeferredValue, useEffect, useRef, useState } from 'react'
+import { useApplication } from '../ApplicationProvider'
+import LinkedItemMeta from '../LinkedItems/LinkedItemMeta'
+
+type Props = {
+  contentTypes: string[]
+  placeholder: string
+  onSelection: (item: DecryptedItem) => void
+  excludeUuids?: string[]
+  className?: {
+    input?: string
+    popover?: string
+  }
+  comboboxProps?: ComboboxStoreProps
+}
+
+const ItemSelectionDropdown = ({
+  contentTypes,
+  placeholder,
+  onSelection,
+  excludeUuids = [],
+  comboboxProps,
+  className = {},
+}: Props) => {
+  const application = useApplication()
+
+  const combobox = useComboboxStore(comboboxProps)
+  const value = combobox.useState('value')
+  const open = combobox.useState('open')
+  const previousValueRef = useRef(value)
+
+  useEffect(() => {
+    const valueWasCleared = previousValueRef.current.length > 0 && value.length < 1
+
+    if (valueWasCleared && open) {
+      combobox.setOpen(false)
+    }
+
+    previousValueRef.current = value
+  }, [combobox, open, value])
+
+  const searchQuery = useDeferredValue(value)
+  const [items, setItems] = useState<DecryptedItem[]>([])
+
+  useEffect(() => {
+    const excludedUuids = new Set(excludeUuids)
+    const searchableItems = naturalSort(application.items.getItems(contentTypes), 'title')
+    const filteredItems = searchableItems.filter((item) => {
+      if (excludedUuids.has(item.uuid)) {
+        return false
+      }
+
+      return doesItemMatchSearchQuery(item, searchQuery, application)
+    })
+    setItems(filteredItems)
+  }, [searchQuery, application, contentTypes, excludeUuids])
+
+  return (
+    <div>
+      <VisuallyHidden>{c('B2.NavSharedUI.AriaLabel').t`Select an item`}</VisuallyHidden>
+      <Combobox
+        store={combobox}
+        placeholder={placeholder}
+        className={classNames(
+          'h-7 w-70 bg-transparent text-sm text-text focus:border-b-2 focus:border-info focus:shadow-none focus:outline-none lg:text-xs',
+          className.input,
+        )}
+      />
+      <ComboboxPopover
+        store={combobox}
+        className={classNames(
+          'z-dropdown-menu max-h-[var(--popover-available-height)] w-[var(--popover-anchor-width)] overflow-y-auto rounded bg-default py-2 shadow-main',
+          className.popover,
+        )}
+      >
+        {items.length > 0 ? (
+          items.map((item) => (
+            <ComboboxItem
+              key={item.uuid}
+              className="flex w-full cursor-pointer items-center justify-between gap-4 overflow-hidden px-3 py-2 hover:bg-contrast hover:text-foreground [&[data-active-item]]:bg-info-backdrop"
+              hideOnClick
+              onClick={() => {
+                combobox.setValue('')
+                onSelection(item)
+              }}
+            >
+              <LinkedItemMeta item={item} searchQuery={searchQuery} />
+            </ComboboxItem>
+          ))
+        ) : (
+          <div className="px-2">{c('B2.NavSharedUI.Info').t`No results found`}</div>
+        )}
+      </ComboboxPopover>
+    </div>
+  )
+}
+
+export default observer(ItemSelectionDropdown)

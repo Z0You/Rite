@@ -1,0 +1,65 @@
+import { classNames, IconType } from '@standardnotes/snjs'
+import { c } from 'ttag'
+import IconButton from '@/Components/Button/IconButton'
+import StyledTooltip from '@/Components/StyledTooltip/StyledTooltip'
+import { ElementFormatType } from 'lexical'
+
+export function getCSSValueFromAlignment(format: ElementFormatType) {
+  switch (format) {
+    case 'start':
+    case 'left':
+      return 'start'
+    case 'right':
+    case 'end':
+      return 'end'
+    default:
+      return 'center'
+  }
+}
+
+const getOptions = () => [
+  {
+    alignment: 'left',
+    label: c('B7.FilesSubscriptionHelp.Files.Label').t`Left align`,
+  },
+  {
+    alignment: 'center',
+    label: c('B7.FilesSubscriptionHelp.Files.Label').t`Center align`,
+  },
+  {
+    alignment: 'right',
+    label: c('B7.FilesSubscriptionHelp.Files.Label').t`Right align`,
+  },
+]
+
+export function ImageAlignmentOptions({
+  alignment: currentAlignment,
+  changeAlignment,
+}: {
+  alignment: ElementFormatType
+  changeAlignment: (format: ElementFormatType) => void
+}) {
+  return getOptions().map(({ alignment, label }) => (
+    <StyledTooltip label={label} key={alignment}>
+      <IconButton
+        className={classNames(
+          alignment === currentAlignment && '!bg-info text-info-contrast',
+          'rounded p-1 hover:bg-contrast',
+        )}
+        icon={`format-align-${alignment}` as IconType}
+        title={label}
+        focusable={true}
+        onClick={(e) => {
+          // the preventDefault and stopPropagation for these events are required
+          // so that the keyboard doesn't jump when you select another option
+          e.preventDefault()
+          e.stopPropagation()
+          changeAlignment(alignment as ElementFormatType)
+        }}
+        onMouseDown={(e) => {
+          e.preventDefault()
+        }}
+      />
+    </StyledTooltip>
+  ))
+}
