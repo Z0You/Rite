@@ -19,7 +19,7 @@
     "prettier": "*",
     "sass": "^1.77.6",
     "sass-loader": "*",
-    "style-loader": "~3.3.1",
+    "style-loader": "~4.0.0",
     "typescript": "5.8.3",
     "webpack": "*"
   }
