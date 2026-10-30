@@ -89,12 +89,12 @@ export class SubscriptionController extends AbstractViewController implements In
     }
   }
 
+  /**
+   * Rite has no subscriptions: everything this check used to gate (plugins, note linking,
+   * per-folder display options, the web clipper) is available to everyone.
+   */
   hasFirstPartyOnlineOrOfflineSubscription(): boolean {
-    const offline = this.features.hasFirstPartyOfflineSubscription()
-    if (!this.sessions.isSignedIn() || !this.sessions.isSignedIntoFirstPartyServer()) {
-      return offline
-    }
-    return !!this.subscriptions.getOnlineSubscription() || offline
+    return true
   }
 
   get isSharedSubscription(): boolean {
