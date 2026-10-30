@@ -3,18 +3,19 @@ import Button from '@/Components/Button/Button'
 import DecoratedInput from '@/Components/Input/DecoratedInput'
 import DecoratedPasswordInput from '@/Components/Input/DecoratedPasswordInput'
 import Icon from '@/Components/Icon/Icon'
-import { getMegaAccount } from '../RiteSync'
+import { StorageProvider } from '../RiteSync'
 
 type Props = {
+  provider: StorageProvider
   onConnected?: () => void
   onCancel?: () => void
 }
 
 /**
- * Connects the user's MEGA account. The MEGA password is used once to open a MEGA session
- * and is never stored; only MEGA's session token stays on this device.
+ * Connects the user's MEGA or Filen account. Its password is used once to open a session and
+ * is never stored; only the service's session stays on this device.
  */
-const MegaConnectForm: FunctionComponent<Props> = ({ onConnected, onCancel }) => {
+const StorageConnectForm: FunctionComponent<Props> = ({ provider, onConnected, onCancel }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [code, setCode] = useState('')
@@ -26,13 +27,13 @@ const MegaConnectForm: FunctionComponent<Props> = ({ onConnected, onCancel }) =>
     async (event?: FormEvent) => {
       event?.preventDefault()
       if (!email || !password) {
-        setError('Enter your MEGA email and password.')
+        setError(`Enter your ${provider.name} email and password.`)
         return
       }
       setBusy(true)
       setError(undefined)
       try {
-        await getMegaAccount().connect(email, password, needsCode ? code : undefined)
+        await provider.account.connect(email, password, needsCode ? code : undefined)
         setPassword('')
         onConnected?.()
       } catch (connectError) {
@@ -45,7 +46,7 @@ const MegaConnectForm: FunctionComponent<Props> = ({ onConnected, onCancel }) =>
         setBusy(false)
       }
     },
-    [email, password, code, needsCode, onConnected],
+    [email, password, code, needsCode, onConnected, provider],
   )
 
   return (
@@ -54,7 +55,7 @@ const MegaConnectForm: FunctionComponent<Props> = ({ onConnected, onCancel }) =>
         className={{ container: 'mb-2' }}
         left={[<Icon type="email" className="text-neutral" />]}
         type="email"
-        placeholder="MEGA email"
+        placeholder={`${provider.name} email`}
         value={email}
         onChange={setEmail}
         disabled={busy}
@@ -63,7 +64,7 @@ const MegaConnectForm: FunctionComponent<Props> = ({ onConnected, onCancel }) =>
       <DecoratedPasswordInput
         className={{ container: 'mb-2' }}
         left={[<Icon type="password" className="text-neutral" />]}
-        placeholder="MEGA password"
+        placeholder={`${provider.name} password`}
         value={password}
         onChange={setPassword}
         disabled={busy}
@@ -73,7 +74,7 @@ const MegaConnectForm: FunctionComponent<Props> = ({ onConnected, onCancel }) =>
           className={{ container: 'mb-2' }}
           left={[<Icon type="security" className="text-neutral" />]}
           type="text"
-          placeholder="6-digit MEGA 2FA code"
+          placeholder={`6-digit ${provider.name} 2FA code`}
           value={code}
           onChange={setCode}
           disabled={busy}
@@ -82,15 +83,21 @@ const MegaConnectForm: FunctionComponent<Props> = ({ onConnected, onCancel }) =>
       )}
       {error && <div className="mb-2 text-sm text-danger">{error}</div>}
       <div className="flex gap-2">
-        <Button primary small label={busy ? 'Connecting…' : 'Connect MEGA'} onClick={submit} disabled={busy} />
+        <Button
+          primary
+          small
+          label={busy ? 'Connecting…' : `Connect ${provider.name}`}
+          onClick={submit}
+          disabled={busy}
+        />
         {onCancel && <Button small label="Cancel" onClick={onCancel} disabled={busy} />}
       </div>
       <p className="mt-2 text-xs text-passive-1">
-        Your MEGA password is only used to sign in to MEGA and is not saved. Notes are encrypted on this device before
-        they are uploaded.
+        Your {provider.name} password is only used to sign in to {provider.name} and is not saved. Notes are encrypted on
+        this device before they are uploaded.
       </p>
     </form>
   )
 }
 
-export default MegaConnectForm
+export default StorageConnectForm

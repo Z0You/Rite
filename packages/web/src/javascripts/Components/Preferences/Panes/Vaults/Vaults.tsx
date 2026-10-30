@@ -25,7 +25,7 @@ import EditVaultModal from './Vaults/VaultModal/EditVaultModal'
 import PreferencesPane from '../../PreferencesComponents/PreferencesPane'
 import { ToastType, addToast } from '@standardnotes/toast'
 import NoProSubscription from '../Account/NoProSubscription'
-import { isMegaHost } from '@/Rite/RiteSync'
+import { isDriveHost } from '@/Rite/RiteSync'
 import { c } from 'ttag'
 
 const Vaults = observer(() => {
@@ -34,7 +34,7 @@ const Vaults = observer(() => {
   const hasAccount = application.hasAccount()
   // Sharing vaults with other people needs a real sync server; the MEGA vault is single-owner.
   const isSharedVaultsEnabled =
-    application.featuresController.isEntitledToSharedVaults() && !isMegaHost(application.getHost.execute().getValue())
+    application.featuresController.isEntitledToSharedVaults() && !isDriveHost(application.getHost.execute().getValue())
 
   const [vaults, setVaults] = useState<VaultListingInterface[]>([])
   const [canCreateMoreVaults, setCanCreateMoreVaults] = useState(true)

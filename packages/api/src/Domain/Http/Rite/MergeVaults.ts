@@ -46,5 +46,10 @@ export function mergeVaults(vaults: VaultState[]): VaultState {
   merged.sessions = [...sessions.values()].filter((session) => userUuids.has(session.userUuid))
   merged.items = items
 
+  const moved = [...ordered].reverse().find((vault) => vault.movedTo)
+  if (moved?.movedTo) {
+    merged.movedTo = moved.movedTo
+  }
+
   return merged
 }

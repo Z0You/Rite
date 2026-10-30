@@ -5,8 +5,11 @@ import { VaultStorageInterface } from './VaultStorageInterface'
 /** Sync "server" address that stores the encrypted vault in the user's MEGA account. */
 export const RiteMegaHost = 'mega://rite'
 
+/** Sync "server" address that stores the encrypted vault in the user's Filen account. */
+export const RiteFilenHost = 'filen://rite'
+
 /** Schemes answered inside the app by the Rite virtual server rather than over HTTP. */
-const RiteStorageSchemes = ['mega:']
+const RiteStorageSchemes = ['mega:', 'filen:']
 
 type StorageFactory = (host: string) => VaultStorageInterface
 

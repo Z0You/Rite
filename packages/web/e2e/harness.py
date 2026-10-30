@@ -14,6 +14,7 @@ import time
 HERE = pathlib.Path(__file__).resolve().parent
 DIST = HERE.parent / "dist"
 FAKE_MEGA_JS = (HERE / "fake-mega.js").read_text()
+FAKE_FILEN_JS = (HERE / "fake-filen.js").read_text()
 
 
 class FakeDrive:
@@ -73,6 +74,88 @@ class FakeDrive:
         return vaults[-1]["data"] if vaults else None
 
 
+class FakeFilen:
+    """A Filen account shared by every simulated device. Like Filen, uploading a file whose
+    name already exists in a folder replaces it (the old one becomes a previous version)."""
+
+    ROOT = "root-folder"
+
+    def __init__(self, email="me@filen.test", password="filen-pass"):
+        self.email, self.password = email, password
+        self.api_key = "filen-key-1"
+        self.items = {}  # uuid -> {uuid, type, name, parent, timestamp, lastModified, size, data}
+        self.versions = []
+        self.ids = itertools.count(1)
+        self.lock = threading.Lock()
+
+    def _plain(self, item):
+        out = {k: v for k, v in item.items() if k != "data"}
+        if item["type"] == "file":
+            out.update(mime="application/json", version=2, chunks=1, key="k", bucket="b", region="r")
+        return out
+
+    def _check(self, api_key):
+        return None if api_key == self.api_key else {"__error": "api_key_not_found"}
+
+    def login(self, email, password):
+        if (email.strip().lower(), password) != (self.email, self.password):
+            return None
+        return {"apiKey": self.api_key, "masterKeys": ["master"], "baseFolderUUID": self.ROOT, "authVersion": 2, "userId": 1}
+
+    def list(self, api_key, uuid, only_dirs):
+        error = self._check(api_key)
+        if error:
+            return error
+        with self.lock:
+            return [self._plain(i) for i in self.items.values()
+                    if i["parent"] == uuid and (not only_dirs or i["type"] == "directory")]
+
+    def mkdir(self, api_key, parent, name):
+        error = self._check(api_key)
+        if error:
+            return error
+        with self.lock:
+            uuid = "fd%d" % next(self.ids)
+            now = int(time.time() * 1000)
+            self.items[uuid] = dict(uuid=uuid, type="directory", name=name, parent=parent, timestamp=now, lastModified=now, size=0)
+            return uuid
+
+    def upload(self, api_key, parent, name, b64):
+        import base64
+
+        error = self._check(api_key)
+        if error:
+            return error
+        with self.lock:
+            for existing in [i for i in self.items.values() if i["parent"] == parent and i["name"] == name]:
+                self.versions.append(self.items.pop(existing["uuid"]))
+            uuid = "ff%d" % next(self.ids)
+            data = base64.b64decode(b64)
+            now = int(time.time() * 1000) + next(self.ids)
+            self.items[uuid] = dict(uuid=uuid, type="file", name=name, parent=parent, timestamp=now,
+                                    lastModified=now, size=len(data), data=data)
+            return self._plain(self.items[uuid])
+
+    def download(self, api_key, uuid):
+        import base64
+
+        error = self._check(api_key)
+        if error:
+            return error
+        return base64.b64encode(self.items[uuid]["data"]).decode()
+
+    def delete(self, api_key, uuid):
+        error = self._check(api_key)
+        if error:
+            return error
+        with self.lock:
+            self.items.pop(uuid, None)
+
+    def vault_bytes(self):
+        vaults = [i for i in self.items.values() if i["name"] == "rite-vault.json"]
+        return vaults[-1]["data"] if vaults else None
+
+
 def serve_dist(port):
     handler = functools.partial(_QuietHandler, directory=str(DIST))
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
@@ -87,9 +170,17 @@ class _QuietHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
-def new_device(browser, drive, base_url, width=1280, height=820):
+def new_device(browser, drive, base_url, width=1280, height=820, filen=None):
     """A fresh browser context = a new device with empty local storage."""
     context = browser.new_context(viewport={"width": width, "height": height})
+    if filen is not None:
+        context.expose_function("__fakeFilenLogin", filen.login)
+        context.expose_function("__fakeFilenList", filen.list)
+        context.expose_function("__fakeFilenMkdir", filen.mkdir)
+        context.expose_function("__fakeFilenUpload", filen.upload)
+        context.expose_function("__fakeFilenDownload", filen.download)
+        context.expose_function("__fakeFilenDelete", filen.delete)
+        context.add_init_script(FAKE_FILEN_JS)
     context.expose_function("__fakeMegaDriveLogin", drive.login)
     context.expose_function("__fakeMegaDriveList", drive.list)
     context.expose_function("__fakeMegaDriveDownload", drive.download)

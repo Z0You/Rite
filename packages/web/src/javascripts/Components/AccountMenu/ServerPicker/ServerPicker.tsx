@@ -5,7 +5,7 @@ import Icon from '@/Components/Icon/Icon'
 import { useApplication } from '@/Components/ApplicationProvider'
 import { isDesktopApplication } from '@/Utils'
 import RadioButtonGroup from '@/Components/RadioButtonGroup/RadioButtonGroup'
-import { isMegaHost, RiteMegaHost } from '@/Rite/RiteSync'
+import { getStorageProviders, providerForHost } from '@/Rite/RiteSync'
 import { c } from 'ttag'
 
 type Props = {
@@ -17,14 +17,14 @@ const ServerPicker = ({ className }: Props) => {
 
   const [currentType, setCurrentType] = useState<ServerType>('mega')
   const { server, setServer } = application.accountMenuController
-  const [customServer, setCustomServer] = useState(isMegaHost(server) ? '' : server)
+  const [customServer, setCustomServer] = useState(providerForHost(server) ? '' : server)
 
   const determineServerType = useCallback(async () => {
     const homeServerUrl = await application.homeServer?.getHomeServerUrl()
     if (homeServerUrl && server === homeServerUrl) {
       setCurrentType('home server')
-    } else if (isMegaHost(server)) {
-      setCurrentType('mega')
+    } else if (providerForHost(server)) {
+      setCurrentType(providerForHost(server)?.id as ServerType)
     } else {
       setCurrentType('custom')
     }
@@ -45,8 +45,9 @@ const ServerPicker = ({ className }: Props) => {
 
   const selectTab = async (type: ServerType) => {
     setCurrentType(type)
-    if (type === 'mega') {
-      handleSyncServerChange(RiteMegaHost, '')
+    const provider = getStorageProviders().find((candidate) => candidate.id === type)
+    if (provider) {
+      handleSyncServerChange(provider.host, '')
     } else if (type === 'custom') {
       // Keep the last custom address typed; never fall back to a third party's server.
       if (customServer) {
@@ -83,7 +84,7 @@ const ServerPicker = ({ className }: Props) => {
   const options = useMemo(
     () =>
       [
-        { label: 'MEGA', value: 'mega' },
+        ...getStorageProviders().map((provider) => ({ label: provider.name, value: provider.id })),
         { label: c('B1.Account.SignIn.Option').t`Custom server`, value: 'custom' },
       ].concat(
         isDesktopApplication() ? [{ label: c('B1.Account.SignIn.Option').t`Home Server`, value: 'home server' }] : [],

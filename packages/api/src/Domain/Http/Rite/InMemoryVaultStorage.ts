@@ -6,10 +6,11 @@ import { VaultState } from './VaultTypes'
  * Used by tests and as a reference implementation for real backends.
  */
 export class InMemoryVaultStorage implements VaultStorageInterface {
-  readonly displayName = 'memory'
   private serialized: string | undefined
 
   public saveCount = 0
+
+  constructor(readonly displayName: string = 'memory') {}
 
   async load(): Promise<VaultState | undefined> {
     return this.serialized ? (JSON.parse(this.serialized) as VaultState) : undefined

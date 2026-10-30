@@ -37,3 +37,6 @@ packages/i18n/dist
 !.yarn/sdks
 !.yarn/versions
 !.yarn/cache
+
+# Python test caches
+__pycache__/

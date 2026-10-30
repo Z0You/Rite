@@ -64,6 +64,20 @@ export type VaultState = {
   items: Record<string, VaultItem>
   /** Monotonic microsecond clock; guarantees strictly increasing updated_at_timestamp values. */
   clock: number
+  /**
+   * Set when this vault was moved to another storage service. The old copy is kept as a backup,
+   * but devices still syncing with it are told where the notes went instead of diverging.
+   */
+  movedTo?: VaultMove
+}
+
+export type VaultMove = {
+  /** Sync address of the new location, e.g. "filen://rite". */
+  host: string
+  /** Shown to people, e.g. "Filen". */
+  displayName: string
+  /** ISO date of the move. */
+  at: string
 }
 
 export function createEmptyVault(): VaultState {

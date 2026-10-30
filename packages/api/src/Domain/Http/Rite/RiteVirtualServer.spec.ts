@@ -345,6 +345,21 @@ describe('RiteVirtualServer', () => {
     expect('key_system_identifier' in conflict.data.conflicts[0].server_item).toBe(false)
   })
 
+  it('tells devices where the notes went once the vault was moved', async () => {
+    const token = (await register()).data.session.access_token
+    const vault = (await storage.load()) as Any
+    vault.movedTo = { host: 'filen://rite', displayName: 'Filen', at: '2026-10-30T08:00:00Z' }
+    await storage.save(vault)
+
+    for (const response of [
+      await call(request(HttpVerb.Post, '/v1/items', { items: [] }, token)),
+      await call(request(HttpVerb.Post, '/v2/login-params', { email: 'me@example.com', code_challenge: 'x' })),
+    ]) {
+      expect(response.status).toBe(HttpStatusCode.BadRequest)
+      expect(response.data.error.message).toContain('moved to Filen')
+    }
+  })
+
   it('processes concurrent requests one at a time', async () => {
     const token = (await register()).data.session.access_token
     const results = await Promise.all(

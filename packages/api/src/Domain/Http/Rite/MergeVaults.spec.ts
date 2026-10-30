@@ -62,6 +62,11 @@ describe('mergeVaults', () => {
     expect(merged.sessions.map((s) => s.uuid).sort()).toEqual(['s1', 's2'])
   })
 
+  it('keeps the "moved" marker when merging copies', () => {
+    const moved = vaultWith(1, [], { movedTo: { host: 'filen://rite', displayName: 'Filen', at: 'x' } })
+    expect(mergeVaults([vaultWith(2, []), moved]).movedTo?.host).toBe('filen://rite')
+  })
+
   it('returns the single vault unchanged and an empty vault for none', () => {
     const only = vaultWith(3, [{ uuid: 'x' }])
     expect(mergeVaults([only])).toBe(only)

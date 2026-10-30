@@ -8,7 +8,8 @@ import SignOutWrapper from './SignOutView'
 import FilesSection from './Files'
 import PreferencesPane from '../../PreferencesComponents/PreferencesPane'
 import Email from './Email/Email'
-import { isMegaHost } from '@/Rite/RiteSync'
+import { isDriveHost } from '@/Rite/RiteSync'
+import SyncStoragePreferences from '@/Rite/Components/SyncStoragePreferences'
 import DeleteAccount from '@/Components/Preferences/Panes/Account/DeleteAccount'
 
 type Props = {
@@ -17,7 +18,7 @@ type Props = {
 
 const AccountPreferences = ({ application }: Props) => {
   const isUsingThirdPartyServer = !application.sessions.isSignedIntoFirstPartyServer()
-  const isMega = isMegaHost(application.getHost.execute().getValue())
+  const isDrive = isDriveHost(application.getHost.execute().getValue())
 
   return (
     <PreferencesPane>
@@ -27,9 +28,10 @@ const AccountPreferences = ({ application }: Props) => {
         <>
           <Credentials application={application} />
           <Sync application={application} />
+          {isDrive && <SyncStoragePreferences application={application} />}
         </>
       )}
-      {application.hasAccount() && !isMega && application.featuresController.entitledToFiles && (
+      {application.hasAccount() && !isDrive && application.featuresController.entitledToFiles && (
         <FilesSection application={application} />
       )}
       {application.hasAccount() && !isUsingThirdPartyServer && <Email application={application} />}

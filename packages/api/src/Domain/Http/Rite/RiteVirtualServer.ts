@@ -192,6 +192,15 @@ export class RiteVirtualServer implements RequestHandlerInterface {
     const { verb, path } = ctx
     const post = verb === HttpVerb.Post
 
+    if (state.movedTo) {
+      const where = state.movedTo.displayName
+      return this.error(
+        HttpStatusCode.BadRequest,
+        `Your Rite notes were moved to ${where}. On this device, open Preferences → Account → Sync storage and choose “Move to ${where}” to switch this device over.`,
+        'rite-vault-moved',
+      )
+    }
+
     // Unauthenticated endpoints
     if (post && path === '/v1/users') {
       return this.register(state, ctx.params)
