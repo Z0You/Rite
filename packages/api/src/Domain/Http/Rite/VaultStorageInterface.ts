@@ -34,3 +34,30 @@ export class VaultStorageAuthRequiredError extends Error {
     this.name = 'VaultStorageAuthRequiredError'
   }
 }
+
+export type RiteStorageProblem = {
+  /** e.g. "MEGA" or "Filen". */
+  displayName: string
+  message: string
+}
+
+const storageProblemListeners = new Set<(problem: RiteStorageProblem) => void>()
+
+/**
+ * Lets the app show a "reconnect your storage" notice. Storage problems are reported here instead
+ * of as "signed out" errors, which would make the app ask for the Rite password in a loop.
+ */
+export function onRiteStorageProblem(listener: (problem: RiteStorageProblem) => void): () => void {
+  storageProblemListeners.add(listener)
+  return () => storageProblemListeners.delete(listener)
+}
+
+export function notifyRiteStorageProblem(problem: RiteStorageProblem): void {
+  storageProblemListeners.forEach((listener) => {
+    try {
+      listener(problem)
+    } catch {
+      // A broken listener must never break syncing.
+    }
+  })
+}

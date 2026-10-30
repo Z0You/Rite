@@ -2,7 +2,12 @@ import { createHash } from 'crypto'
 import { HttpRequest, HttpStatusCode, HttpVerb } from '@standardnotes/responses'
 import { InMemoryVaultStorage } from './InMemoryVaultStorage'
 import { RiteVirtualServer } from './RiteVirtualServer'
-import { VaultStorageAuthRequiredError, VaultStorageConflictError, VaultStorageInterface } from './VaultStorageInterface'
+import {
+  onRiteStorageProblem,
+  VaultStorageAuthRequiredError,
+  VaultStorageConflictError,
+  VaultStorageInterface,
+} from './VaultStorageInterface'
 
 const HOST = 'mega://rite'
 
@@ -104,8 +109,19 @@ describe('RiteVirtualServer', () => {
   })
 
   it('requires a valid access token for sync', async () => {
+    await register()
     const response = await call(request(HttpVerb.Post, '/v1/items', { items: [] }, 'not-a-token'))
     expect(response.status).toBe(HttpStatusCode.Unauthorized)
+  })
+
+  it('explains an empty storage account instead of asking for the Rite password again', async () => {
+    const sync = await call(request(HttpVerb.Post, '/v1/items', { items: [] }, 'token-from-elsewhere'))
+    const loginParams = await call(request(HttpVerb.Post, '/v2/login-params', { email: 'me@example.com' }))
+    for (const response of [sync, loginParams]) {
+      expect(response.status).toBe(HttpStatusCode.BadRequest)
+      expect(response.data.error.tag).toBe('rite-no-vault')
+      expect(response.data.error.message).toContain('same memory account')
+    }
   })
 
   it('saves items and delivers them to a second device', async () => {
@@ -288,18 +304,31 @@ describe('RiteVirtualServer', () => {
     expect(response.data.error.message).toContain('not available')
   })
 
-  it('surfaces storage sign-in problems as 401 errors with the backend message', async () => {
+  it('reports storage connection problems without saying the Rite session ended', async () => {
     const failing: VaultStorageInterface = {
       displayName: 'MEGA',
       load: async () => {
-        throw new VaultStorageAuthRequiredError('Connect your MEGA account to sync.')
+        throw new VaultStorageAuthRequiredError('Your MEGA session has expired. Please connect your MEGA account again.')
       },
       save: async () => undefined,
     }
+    const problems: string[] = []
+    const stop = onRiteStorageProblem((problem) => problems.push(`${problem.displayName}: ${problem.message}`))
     server = new RiteVirtualServer(HOST, failing)
-    const response = await call(request(HttpVerb.Post, '/v2/login-params', { email: 'x@y.z' }))
-    expect(response.status).toBe(HttpStatusCode.Unauthorized)
-    expect(response.data.error.message).toBe('Connect your MEGA account to sync.')
+
+    for (const response of [
+      await call(request(HttpVerb.Post, '/v2/login-params', { email: 'x@y.z' })),
+      await call(request(HttpVerb.Post, '/v1/items', { items: [] }, 'some-token')),
+    ]) {
+      // 401 or 498 would make the app ask for the Rite password again and again.
+      expect([HttpStatusCode.Unauthorized, HttpStatusCode.ExpiredAccessToken]).not.toContain(response.status)
+      expect(response.status).toBe(HttpStatusCode.BadRequest)
+      expect(response.data.error.tag).toBe('rite-storage-disconnected')
+      expect(response.data.error.message).toContain('connect your MEGA account again')
+    }
+    expect(problems).toHaveLength(2)
+    expect(problems[0]).toContain('MEGA: Your MEGA session has expired')
+    stop()
   })
 
   it('replays a request on the fresh vault when another device saved in between', async () => {

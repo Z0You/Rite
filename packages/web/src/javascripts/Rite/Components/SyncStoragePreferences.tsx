@@ -45,6 +45,15 @@ const SyncStoragePreferences: FunctionComponent<Props> = ({ application }) => {
             '. It is not connected on this device, so syncing is paused.'
           )}
         </Text>
+        {isConnected && (
+          <button
+            type="button"
+            className="mt-2 text-sm text-info hover:underline"
+            onClick={() => void current.account.disconnect()}
+          >
+            Connect a different {current.name} account
+          </button>
+        )}
         {!isConnected && (
           <div className="mt-2">
             <StorageConnectForm provider={current} />

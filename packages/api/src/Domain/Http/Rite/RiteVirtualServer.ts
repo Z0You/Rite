@@ -1,6 +1,11 @@
 import { HttpRequest, HttpRequestParams, HttpResponse, HttpStatusCode, HttpVerb } from '@standardnotes/responses'
 import { RequestHandlerInterface } from '../RequestHandlerInterface'
-import { VaultStorageAuthRequiredError, VaultStorageConflictError, VaultStorageInterface } from './VaultStorageInterface'
+import {
+  notifyRiteStorageProblem,
+  VaultStorageAuthRequiredError,
+  VaultStorageConflictError,
+  VaultStorageInterface,
+} from './VaultStorageInterface'
 import { createEmptyVault, VaultItem, VaultSession, VaultState, VaultUser } from './VaultTypes'
 
 type Params = Record<string, unknown>
@@ -112,7 +117,12 @@ export class RiteVirtualServer implements RequestHandlerInterface {
       }
     } catch (error) {
       if (error instanceof VaultStorageAuthRequiredError) {
-        return this.toResponse<T>(this.error(HttpStatusCode.Unauthorized, error.message))
+        // Not 401: that would tell the app its *Rite* session ended and make it ask for the Rite
+        // password, which cannot help while the MEGA/Filen connection itself is the problem.
+        notifyRiteStorageProblem({ displayName: this.storage.displayName, message: error.message })
+        return this.toResponse<T>(
+          this.error(HttpStatusCode.BadRequest, error.message, 'rite-storage-disconnected'),
+        )
       }
       const message = error instanceof Error ? error.message : String(error)
       return this.toResponse<T>(
@@ -146,6 +156,20 @@ export class RiteVirtualServer implements RequestHandlerInterface {
         (Array.isArray(data.retrieved_items) && data.retrieved_items.length
           ? ` | retrieved ${list(data.retrieved_items).join(', ')}`
           : ''),
+    )
+  }
+
+  private noVaultError(): RouteResult {
+    const name = this.storage.displayName
+    notifyRiteStorageProblem({
+      displayName: name,
+      message: `No Rite account was found in the connected ${name} account. Check that it is the ${name} account you used when creating your Rite account.`,
+    })
+    return this.error(
+      HttpStatusCode.BadRequest,
+      `No Rite account was found in the “Rite” folder of the connected ${name} account. Check that you connected ` +
+        `the same ${name} account you used when creating your Rite account, or create a new Rite account.`,
+      'rite-no-vault',
     )
   }
 
@@ -370,7 +394,7 @@ export class RiteVirtualServer implements RequestHandlerInterface {
     const email = this.normalizeEmail(params.email)
     const user = email ? this.findUser(state, email) : undefined
     if (!user) {
-      return this.error(HttpStatusCode.Unauthorized, InvalidLoginMessage)
+      return state.users.length === 0 ? this.noVaultError() : this.error(HttpStatusCode.Unauthorized, InvalidLoginMessage)
     }
 
     if (typeof params.code_challenge === 'string') {
@@ -430,6 +454,11 @@ export class RiteVirtualServer implements RequestHandlerInterface {
     state: VaultState,
     accessToken: string | undefined,
   ): { user: VaultUser; session: VaultSession } | RouteResult {
+    if (state.users.length === 0) {
+      // No vault here at all: asking for the Rite password again could never succeed.
+      return this.noVaultError()
+    }
+
     const session = accessToken ? state.sessions.find((candidate) => candidate.accessToken === accessToken) : undefined
     const user = session ? state.users.find((candidate) => candidate.uuid === session.userUuid) : undefined
 

@@ -92,7 +92,7 @@ export class FilenAccount {
     const session = this.readSession()
     if (!session) {
       throw new VaultStorageAuthRequiredError(
-        'Connect your Filen account first: on the sign-in screen, choose Filen, then Connect.',
+        'Your Filen account is not connected on this device. Connect it again to resume syncing.',
       )
     }
     if (!this.sdk) {

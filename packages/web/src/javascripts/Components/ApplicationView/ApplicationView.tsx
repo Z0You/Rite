@@ -1,4 +1,5 @@
 import { WebApplicationGroup } from '@/Application/WebApplicationGroup'
+import StorageProblemNotice from '@/Rite/Components/StorageProblemNotice'
 import { getPlatformString } from '@/Utils'
 import { ApplicationEvent, Challenge, removeFromArray, WebAppEvent } from '@standardnotes/snjs'
 import { alertDialog, isIOS, RouteType } from '@standardnotes/ui-services'
@@ -249,6 +250,7 @@ const ApplicationView: FunctionComponent<Props> = ({ application, mainApplicatio
                   </FileDragNDropProvider>
                   <>
                     <Footer application={application} applicationGroup={mainApplicationGroup} />
+                    <StorageProblemNotice />
                     <SessionsModal application={application} />
                     <PreferencesViewWrapper application={application} />
                     <RevisionHistoryModal application={application} />

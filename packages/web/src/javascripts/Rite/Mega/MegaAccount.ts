@@ -86,7 +86,7 @@ export class MegaAccount {
     const persisted = this.readSession()
     if (!persisted) {
       throw new VaultStorageAuthRequiredError(
-        'Connect your MEGA account first: open Advanced options, choose MEGA, then Connect.',
+        'Your MEGA account is not connected on this device. Connect it again to resume syncing.',
       )
     }
 
