@@ -90,7 +90,7 @@ def main():
         a.wait_for_timeout(3000)
 
         # ---- MEGA ends the session (e.g. "log out of all devices" on mega.nz)
-        drive.sid = "sid-after-logout"
+        drive.sessions.clear()
         type_note(a, "Offline", "written while MEGA is disconnected")
         check(wait_for(lambda: a.get_by_text("Syncing with MEGA is paused").count() > 0, timeout=40),
               "a 'syncing is paused' notice appears")

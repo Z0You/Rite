@@ -20,7 +20,7 @@ FAKE_FILEN_JS = (HERE / "fake-filen.js").read_text()
 class FakeDrive:
     def __init__(self, email="me@mega.test", password="mega-pass"):
         self.email, self.password = email, password
-        self.sid = "sid-%d" % int(time.time() * 1000)
+        self.sessions = set()
         self.nodes = {}  # id -> {id, parent, name, directory, timestamp, size, data(bytes)}
         self.ids = itertools.count(1)
         self.lock = threading.Lock()
@@ -29,10 +29,18 @@ class FakeDrive:
         return {k: node[k] for k in ("id", "parent", "name", "directory", "timestamp", "size")}
 
     def login(self, email, password):
-        return self.sid if (email.strip().lower(), password) == (self.email, self.password) else None
+        # Like MEGA: every login opens a new session.
+        if (email.strip().lower(), password) != (self.email, self.password):
+            return None
+        sid = "sid-%d" % next(self.ids)
+        self.sessions.add(sid)
+        return sid
+
+    def logout(self, sid):
+        self.sessions.discard(sid)
 
     def list(self, sid):
-        if sid != self.sid:
+        if sid not in self.sessions:
             return None
         with self.lock:
             return [self._info(n) for n in self.nodes.values()]
@@ -40,7 +48,8 @@ class FakeDrive:
     def download(self, node_id):
         import base64
 
-        return base64.b64encode(self.nodes[node_id]["data"]).decode()
+        node = self.nodes.get(node_id)
+        return base64.b64encode(node["data"]).decode() if node else None
 
     def upload(self, parent, name, b64):
         import base64
@@ -187,6 +196,7 @@ def new_device(browser, drive, base_url, width=1280, height=820, filen=None):
     context.expose_function("__fakeMegaDriveUpload", drive.upload)
     context.expose_function("__fakeMegaDriveMkdir", drive.mkdir)
     context.expose_function("__fakeMegaDriveDelete", drive.delete)
+    context.expose_function("__fakeMegaDriveLogout", drive.logout)
     context.add_init_script(FAKE_MEGA_JS)
     page = context.new_page()
     page.errors = []

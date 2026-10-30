@@ -20,7 +20,6 @@ const defaultLoader: MegaModuleLoader = async () => (await import('megajs')) as 
  * Signing out of MEGA (or MEGA expiring the session) requires connecting again.
  */
 export class MegaAccount {
-  private storage: MegaStorage | undefined
   private listeners = new Set<() => void>()
 
   constructor(
@@ -54,7 +53,7 @@ export class MegaAccount {
     try {
       await storage.ready
     } catch (error) {
-      throw new Error(describeMegaError(error))
+      throw new Error(describeMegaError(error, true))
     }
 
     const session = storage.toJSON()
@@ -70,15 +69,24 @@ export class MegaAccount {
       },
     })
 
-    await this.closeQuietly()
-    this.storage = storage
+    // Note: never call storage.close() here. In megajs, close() logs the session out on MEGA's
+    // side, which would end the very session that was just saved.
     this.notify()
   }
 
+  /** Forgets the MEGA session on this device and ends it on MEGA's side. */
   async disconnect(): Promise<void> {
-    await this.closeQuietly()
+    const persisted = this.readSession()
     this.store.removeItem(SessionStorageKey)
     this.notify()
+    if (persisted) {
+      try {
+        const mega = await this.loadModule()
+        await mega.Storage.fromJSON({ ...persisted.session, options: { ...persisted.session.options } }).close()
+      } catch {
+        // Ending the session on MEGA's side is best effort.
+      }
+    }
   }
 
   /** Returns a ready MEGA storage with an up-to-date file tree. */
@@ -90,22 +98,26 @@ export class MegaAccount {
       )
     }
 
-    if (!this.storage) {
-      const mega = await this.loadModule()
-      this.storage = mega.Storage.fromJSON({ ...persisted.session, options: { ...persisted.session.options } })
-    }
+    // A fresh megajs Storage for every use: within one Storage object megajs never forgets files
+    // that were deleted (it only learns about deletions over a live connection, which Rite does
+    // not keep open), so reusing one would show old vault copies that no longer exist.
+    const mega = await this.loadModule()
+    const storage = mega.Storage.fromJSON({ ...persisted.session, options: { ...persisted.session.options } })
 
     try {
-      await this.storage.reload(true)
+      await storage.reload(true)
     } catch (error) {
       if (isSessionError(error)) {
-        await this.disconnect()
-        throw new VaultStorageAuthRequiredError('Your MEGA session has expired. Please connect your MEGA account again.')
+        // MEGA ended the session (for example "log out of all devices" on mega.nz). Forget it
+        // locally only: it is already invalid on MEGA's side.
+        this.store.removeItem(SessionStorageKey)
+        this.notify()
+        throw new VaultStorageAuthRequiredError('Your MEGA session has ended. Please connect your MEGA account again.')
       }
       throw new Error(describeMegaError(error))
     }
 
-    return this.storage
+    return storage
   }
 
   private readSession(): PersistedSession | undefined {
@@ -125,16 +137,6 @@ export class MegaAccount {
     this.store.setItem(SessionStorageKey, JSON.stringify(session))
   }
 
-  private async closeQuietly(): Promise<void> {
-    const storage = this.storage
-    this.storage = undefined
-    try {
-      await storage?.close()
-    } catch {
-      // Closing is best effort.
-    }
-  }
-
   private notify(): void {
     this.listeners.forEach((listener) => listener())
   }
@@ -148,16 +150,16 @@ function errorText(error: unknown): string {
 }
 
 function isSessionError(error: unknown): boolean {
-  return /ESID|\(-15\)|EKEY|\(-14\)|EBLOCKED|\(-16\)/.test(errorText(error))
+  return /ESID|\(-15\)|EBLOCKED|\(-16\)/.test(errorText(error))
 }
 
 /** Turns megajs' terse error codes into messages people can act on. */
-export function describeMegaError(error: unknown): string {
+export function describeMegaError(error: unknown, duringLogin = false): string {
   const text = errorText(error)
   if (/EMFAREQUIRED|\(-26\)/.test(text)) {
     return 'Your MEGA account uses two-factor authentication. Enter the 6-digit code from your authenticator app.'
   }
-  if (/ENOENT|\(-9\)|EINCOMPLETE|EARGS|\(-2\)/.test(text)) {
+  if (duringLogin && /ENOENT|\(-9\)|EINCOMPLETE|EARGS|\(-2\)/.test(text)) {
     return 'MEGA did not accept that email and password.'
   }
   if (/EBLOCKED|\(-16\)/.test(text)) {

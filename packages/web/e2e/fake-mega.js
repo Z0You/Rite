@@ -17,7 +17,9 @@
     return bytes
   }
 
-  function makeNode(info, parent) {
+  // Mirrors megajs: each Storage object has its own node objects; deleting a file only tells the
+  // server (the node stays listed in that Storage object); close() logs the session out.
+  function makeNode(storage, info) {
     var node = {
       nodeId: info.id,
       name: info.name,
@@ -26,54 +28,38 @@
       directory: info.directory,
       children: info.directory ? [] : undefined,
       downloadBuffer: async function () {
-        return fromBase64(await window.__fakeMegaDriveDownload(info.id))
+        var b64 = await window.__fakeMegaDriveDownload(info.id)
+        if (b64 === null) throw new Error('ENOENT (-9): Object (typically, node or user) not found')
+        return fromBase64(b64)
       },
       delete: async function () {
         await window.__fakeMegaDriveDelete(info.id)
-        if (parent && parent.children) parent.children = parent.children.filter((c) => c !== node)
       },
       upload: function (opts, data) {
         return {
           complete: window.__fakeMegaDriveUpload(info.id, opts.name, toBase64(data)).then(function (created) {
-            var child = makeNode(created, node)
-            node.children.push(child)
-            return child
+            return storage.importNode(created)
           }),
         }
       },
       mkdir: async function (name) {
-        var created = await window.__fakeMegaDriveMkdir(info.id, name)
-        var child = makeNode(created, node)
-        node.children.push(child)
-        return child
+        return storage.importNode(await window.__fakeMegaDriveMkdir(info.id, name))
       },
     }
     return node
   }
 
-  function buildTree(listing) {
-    var root = makeNode({ id: 'root', name: 'Cloud Drive', directory: true })
-    var byId = { root: root }
-    listing
-      .slice()
-      .sort(function (a, b) {
-        return (b.directory ? 1 : 0) - (a.directory ? 1 : 0)
-      })
-      .forEach(function (info) {
-        var parent = byId[info.parent]
-        if (!parent) return
-        var node = makeNode(info, parent)
-        byId[info.id] = node
-        parent.children.push(node)
-      })
-    return root
-  }
-
-  function FakeStorage(options) {
+  function FakeStorage(options, restoring) {
     var self = this
     this.options = Object.assign({}, options)
     this.sid = ''
-    this.root = buildTree([])
+    this.files = {}
+    this.root = makeNode(this, { id: 'root', name: 'Cloud Drive', directory: true })
+    this.files.root = this.root
+    if (restoring) {
+      this.ready = Promise.resolve()
+      return
+    }
     this.ready = window.__fakeMegaDriveLogin(options.email, options.password).then(function (sid) {
       if (!sid) throw new Error('ENOENT (-9): Object (typically, node or user) not found')
       self.sid = sid
@@ -82,24 +68,41 @@
     this.ready.catch(function () {})
   }
 
+  FakeStorage.prototype.importNode = function (info) {
+    if (!this.files[info.id]) {
+      var node = makeNode(this, info)
+      this.files[info.id] = node
+      var parent = this.files[info.parent]
+      if (parent) parent.children.push(node)
+    }
+    return this.files[info.id]
+  }
+
   FakeStorage.prototype.reload = async function () {
     var listing = await window.__fakeMegaDriveList(this.sid)
     if (listing === null) throw new Error('ESID (-15): Invalid or expired user session, please relogin')
-    this.root = buildTree(listing)
+    var self = this
+    listing
+      .slice()
+      .sort(function (a, b) {
+        return (b.directory ? 1 : 0) - (a.directory ? 1 : 0)
+      })
+      .forEach(function (info) {
+        self.importNode(info)
+      })
   }
 
   FakeStorage.prototype.toJSON = function () {
     return { key: 'fake-key', sid: this.sid, name: 'Test', user: 'test-user', options: this.options }
   }
 
-  FakeStorage.prototype.close = async function () {}
+  FakeStorage.prototype.close = async function () {
+    await window.__fakeMegaDriveLogout(this.sid)
+  }
 
   FakeStorage.fromJSON = function (json) {
-    var storage = Object.create(FakeStorage.prototype)
-    storage.options = Object.assign({}, json.options)
+    var storage = new FakeStorage(json.options, true)
     storage.sid = json.sid
-    storage.root = buildTree([])
-    storage.ready = Promise.resolve()
     return storage
   }
 
