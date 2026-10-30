@@ -104,7 +104,7 @@ jobs:
           mkdir -p out
           cp packages/mobile/android/app/build/outputs/apk/prod/release/app-prod-release.apk "out/Rite-$RITE_VERSION.apk"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Rite-${{ env.RITE_VERSION }}-apk
           path: out/*.apk
@@ -132,7 +132,7 @@ jobs:
       - run: yarn build:web
       - name: Package the web app
         run: cd packages/web/dist && zip -qr ../../../Rite-web.zip .
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Rite-web
           path: Rite-web.zip
