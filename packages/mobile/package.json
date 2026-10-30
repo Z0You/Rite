@@ -38,7 +38,7 @@
     "@react-native-community/cli-platform-ios": "15.0.1",
     "@react-native/babel-preset": "0.78.1",
     "@react-native/eslint-config": "0.78.1",
-    "@react-native/metro-config": "0.78.1",
+    "@react-native/metro-config": "0.88.0",
     "@standardnotes/config": "^2.4.3",
     "@standardnotes/react-native-utils": "1.0.1",
     "@standardnotes/snjs": "workspace:*",
